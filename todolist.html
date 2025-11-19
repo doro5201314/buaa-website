@@ -1,0 +1,4334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TodoList 任务管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#4F9EFD",
+              secondary: "#8EC5FC",
+              accent: "#E0C3FC",
+              light: "#F0F7FF",
+              dark: "#333333",
+              success: "#4CAF50",
+              important: "#FF5252",
+              completed: "#9E9E9E",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .text-shadow {
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .bg-blur {
+          backdrop-filter: blur(8px);
+        }
+        .transition-custom {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+      }
+    </style>
+    <style>
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        overflow-x: hidden;
+      }
+
+      .login-gradient {
+        background: linear-gradient(90deg, #ffb6c1, #e6e6fa);
+      }
+
+      .main-gradient {
+        background: linear-gradient(90deg, #8ec5fc, #ffffff);
+      }
+
+      .sidebar-gradient {
+        background: linear-gradient(180deg, #4f9efd, #8ec5fc);
+      }
+
+      .task-item {
+        transition: all 0.2s ease;
+      }
+
+      .task-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-enter {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      .modal-enter-active {
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 300ms, transform 300ms;
+      }
+
+      .modal-exit {
+        opacity: 1;
+      }
+
+      .modal-exit-active {
+        opacity: 0;
+        transform: scale(0.9);
+        transition: opacity 300ms, transform 300ms;
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(79, 158, 253, 0.7);
+        }
+
+        70% {
+          transform: scale(1.05);
+          box-shadow: 0 0 0 10px rgba(79, 158, 253, 0);
+        }
+
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(79, 158, 253, 0);
+        }
+      }
+
+      .loader {
+        border-top-color: #4f9efd;
+        animation: spinner 1s linear infinite;
+      }
+
+      @keyframes spinner {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body class="h-screen flex flex-col">
+    <div
+      id="login-page"
+      class="login-gradient h-screen flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white/80 bg-blur rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all duration-500 hover:scale-[1.02]"
+      >
+        <div class="text-center mb-8">
+          <h1
+            class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-primary mb-2"
+          >
+            TodoList
+          </h1>
+          <p class="text-gray-600">高效管理您的任务与时间</p>
+        </div>
+
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label
+              for="username"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >用户名</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >
+                <i class="fa fa-user"></i>
+              </span>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                placeholder="请输入用户名"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >密码</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >
+                <i class="fa fa-lock"></i>
+              </span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                placeholder="请输入密码"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+              <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+                记住我
+              </label>
+            </div>
+            <a
+              href="#"
+              class="text-sm text-primary hover:text-primary/80 transition-custom"
+              >忘记密码?</a
+            >
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom transform hover:translate-y-[-2px] shadow-md hover:shadow-lg"
+            >
+              登录
+            </button>
+          </div>
+
+          <div class="text-center text-sm text-gray-600">
+            还没有账号?
+            <a
+              href="#"
+              class="text-primary hover:text-primary/80 transition-custom font-medium"
+              id="register-link"
+              >注册</a
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="register-page"
+      class="login-gradient h-screen flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-white/80 bg-blur rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all duration-500 hover:scale-[1.02]"
+      >
+        <div class="text-center mb-8">
+          <h1
+            class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-primary mb-2"
+          >
+            创建账号
+          </h1>
+          <p class="text-gray-600">开始管理您的任务</p>
+        </div>
+
+        <form id="register-form" class="space-y-6">
+          <div>
+            <label
+              for="reg-username"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >用户名</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >
+                <i class="fa fa-user"></i>
+              </span>
+              <input
+                type="text"
+                id="reg-username"
+                name="reg-username"
+                required
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                placeholder="请输入用户名"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="reg-password"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >密码</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >
+                <i class="fa fa-lock"></i>
+              </span>
+              <input
+                type="password"
+                id="reg-password"
+                name="reg-password"
+                required
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                placeholder="请输入密码"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="reg-confirm"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >确认密码</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+              >
+                <i class="fa fa-lock"></i>
+              </span>
+              <input
+                type="password"
+                id="reg-confirm"
+                name="reg-confirm"
+                required
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                placeholder="请确认密码"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom transform hover:translate-y-[-2px] shadow-md hover:shadow-lg"
+            >
+              注册
+            </button>
+          </div>
+
+          <div class="text-center text-sm text-gray-600">
+            已有账号?
+            <a
+              href="#"
+              class="text-primary hover:text-primary/80 transition-custom font-medium"
+              id="login-link"
+              >登录</a
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="app-page" class="flex h-screen hidden">
+      <div
+        class="sidebar-gradient w-64 flex-shrink-0 flex flex-col text-white shadow-lg z-10"
+      >
+        <div class="p-6 border-b border-white/20">
+          <h1 class="text-2xl font-bold text-shadow">TodoList</h1>
+          <p class="text-white/80 text-sm mt-1">管理您的任务与时间</p>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
+          <ul class="space-y-1">
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg bg-white/10 text-white font-medium"
+                data-view="day"
+              >
+                <i class="fa fa-calendar-day w-5 mr-3"></i>
+                <span>日视图</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="week"
+              >
+                <i class="fa fa-calendar-week w-5 mr-3"></i>
+                <span>周视图</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="month"
+              >
+                <i class="fa fa-calendar w-5 mr-3"></i>
+                <span>月视图</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="year"
+              >
+                <i class="fa fa-calendar-alt w-5 mr-3"></i>
+                <span>年视图</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="important"
+              >
+                <i class="fa fa-star w-5 mr-3"></i>
+                <span>重要</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="completed"
+              >
+                <i class="fa fa-check-circle w-5 mr-3"></i>
+                <span>已完成</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="pomodoro"
+              >
+                <i class="fa fa-clock-o w-5 mr-3"></i>
+                <span>番茄钟</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="homework"
+              >
+                <i class="fa fa-book w-5 mr-3"></i>
+                <span>作业</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="notes"
+              >
+                <i class="fa fa-sticky-note w-5 mr-3"></i>
+                <span>心得笔记</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="all"
+              >
+                <i class="fa fa-tasks w-5 mr-3"></i>
+                <span>总任务</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="p-4 border-t border-white/20">
+          <button
+            id="settings-btn"
+            class="flex items-center w-full px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+          >
+            <i class="fa fa-cog w-5 mr-3"></i>
+            <span>设置</span>
+          </button>
+          <button
+            id="logout-btn"
+            class="flex items-center w-full px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom mt-1"
+          >
+            <i class="fa fa-sign-out w-5 mr-3"></i>
+            <span>退出登录</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="main-gradient flex-1 flex flex-col overflow-hidden">
+        <header
+          class="bg-white/70 bg-blur shadow-sm py-3 px-6 flex justify-between items-center"
+        >
+          <div>
+            <h2 id="view-title" class="text-xl font-semibold text-gray-800">
+              日视图
+            </h2>
+            <p id="current-date" class="text-gray-500 text-sm"></p>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <button
+              id="music-toggle"
+              class="p-2 rounded-full hover:bg-gray-200 transition-custom text-gray-700"
+            >
+              <i class="fa fa-music"></i>
+            </button>
+            <button
+              id="add-task-btn"
+              class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom flex items-center shadow-sm hover:shadow"
+            >
+              <i class="fa fa-plus mr-2"></i>
+              <span>添加任务</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6" id="views-container">
+          <div id="day-view" class="view-content">
+            <div class="bg-white/80 rounded-xl shadow-md p-5 mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <button
+                  id="prev-day"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <h3
+                  id="current-day"
+                  class="text-xl font-semibold text-gray-800"
+                ></h3>
+                <button
+                  id="next-day"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
+                <h3
+                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+                >
+                  <i class="fa fa-sun-o text-yellow-500 mr-2"></i> 上午
+                </h3>
+                <div
+                  id="morning-tasks"
+                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
+                ></div>
+              </div>
+
+              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
+                <h3
+                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+                >
+                  <i class="fa fa-sun text-orange-500 mr-2"></i> 中午
+                </h3>
+                <div
+                  id="noon-tasks"
+                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
+                ></div>
+              </div>
+
+              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
+                <h3
+                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+                >
+                  <i class="fa fa-moon-o text-indigo-500 mr-2"></i> 下午/晚上
+                </h3>
+                <div
+                  id="evening-tasks"
+                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="week-view" class="view-content hidden overflow-x-auto">
+            <div class="min-w-[900px] bg-white/80 rounded-xl shadow-md p-5">
+              <div class="flex justify-between items-center mb-4">
+                <button
+                  id="prev-week"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <h3
+                  id="current-week"
+                  class="text-xl font-semibold text-gray-800"
+                ></h3>
+                <button
+                  id="next-week"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="grid grid-cols-7 gap-2 mb-4">
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周一
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周二
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周三
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周四
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周五
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周六
+                </div>
+                <div class="text-center font-semibold text-gray-700 py-2">
+                  周日
+                </div>
+              </div>
+
+              <div class="grid grid-cols-7 gap-2 h-[calc(100vh-300px)]">
+                <div
+                  id="monday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="tuesday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="wednesday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="thursday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="friday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="saturday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+                <div
+                  id="sunday-tasks"
+                  class="bg-gray-50 rounded-lg p-2 overflow-y-auto scrollbar-hide border border-gray-200"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="month-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <div class="flex justify-between items-center mb-6">
+                <button
+                  id="prev-month"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <h3
+                  id="current-month"
+                  class="text-xl font-semibold text-gray-800"
+                ></h3>
+                <button
+                  id="next-month"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1 mb-2">
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  日
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  一
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  二
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  三
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  四
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  五
+                </div>
+                <div class="text-center text-sm font-medium text-gray-500 py-2">
+                  六
+                </div>
+              </div>
+
+              <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+          </div>
+
+          <div id="year-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <div class="flex justify-between items-center mb-6">
+                <button
+                  id="prev-year"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <h3
+                  id="current-year"
+                  class="text-xl font-semibold text-gray-800"
+                ></h3>
+                <button
+                  id="next-year"
+                  class="p-2 rounded-full hover:bg-gray-200 transition-custom"
+                >
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+
+              <div
+                class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+              ></div>
+            </div>
+          </div>
+
+          <div id="important-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <h3
+                class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+              >
+                <i class="fa fa-star text-yellow-500 mr-2"></i> 重要任务
+              </h3>
+              <div
+                id="important-tasks-list"
+                class="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto scrollbar-hide"
+              ></div>
+            </div>
+          </div>
+
+          <div id="completed-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <h3
+                class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+              >
+                <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                已完成任务
+              </h3>
+              <div
+                id="completed-tasks-list"
+                class="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto scrollbar-hide"
+              ></div>
+            </div>
+          </div>
+
+          <div
+            id="pomodoro-view"
+            class="view-content hidden flex flex-col items-center justify-center h-full"
+          >
+            <div class="bg-white/80 rounded-2xl shadow-lg p-8 w-full max-w-md">
+              <div class="text-center mb-6">
+                <h3 class="text-2xl font-semibold text-gray-800">番茄钟</h3>
+                <p id="beijing-time" class="text-gray-500 mt-2">
+                  北京时间: --:--:--
+                </p>
+              </div>
+
+              <div class="flex justify-center mb-8">
+                <div class="relative">
+                  <div
+                    id="pomodoro-circle"
+                    class="w-48 h-48 rounded-full border-8 border-primary flex items-center justify-center pulse"
+                  >
+                    <span
+                      id="pomodoro-timer"
+                      class="text-3xl font-bold text-gray-800"
+                      >25:00</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4 mb-6">
+                <button
+                  class="pomodoro-mode-btn py-2 rounded-lg bg-primary text-white font-medium"
+                  data-time="25"
+                >
+                  专注
+                </button>
+                <button
+                  class="pomodoro-mode-btn py-2 rounded-lg bg-gray-200 text-gray-700 font-medium"
+                  data-time="5"
+                >
+                  短休
+                </button>
+                <button
+                  class="pomodoro-mode-btn py-2 rounded-lg bg-gray-200 text-gray-700 font-medium"
+                  data-time="15"
+                >
+                  长休
+                </button>
+              </div>
+
+              <div class="flex justify-center space-x-4">
+                <button
+                  id="start-pomodoro"
+                  class="py-2 px-6 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-custom"
+                >
+                  <i class="fa fa-play mr-2"></i>开始
+                </button>
+                <button
+                  id="reset-pomodoro"
+                  class="py-2 px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-custom"
+                >
+                  <i class="fa fa-refresh mr-2"></i>重置
+                </button>
+                <button
+                  id="fullscreen-pomodoro"
+                  class="py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-custom"
+                >
+                  <i class="fa fa-expand"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="homework-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <h3
+                class="text-xl font-semibold text-gray-800 mb-6 flex items-center"
+              >
+                <i class="fa fa-book text-primary mr-2"></i> 作业平台
+                <span class="ml-2 text-sm font-normal text-gray-500"
+                  >(点击链接跳转到相应平台)</span
+                >
+              </h3>
+
+              <div class="mb-8">
+                <h4
+                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+                >
+                  <i class="fa fa-robot text-indigo-600 mr-2"></i> AI平台
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <a
+                    href="https://www.doubao.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                  >
+                    <div
+                      class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mr-4"
+                    >
+                      <i class="fa fa-robot text-indigo-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-gray-800">豆包</h4>
+                      <p class="text-sm text-gray-600">doubao.com</p>
+                    </div>
+                    <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                  </a>
+
+                  <a
+                    href="https://yuanbao.tencent.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                  >
+                    <div
+                      class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4"
+                    >
+                      <i class="fa fa-coins text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-gray-800">元宝</h4>
+                      <p class="text-sm text-gray-600">yuanbao.tencent.com</p>
+                    </div>
+                    <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                  </a>
+
+                  <a
+                    href="https://wenxin.baidu.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                  >
+                    <div
+                      class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4"
+                    >
+                      <i class="fa fa-brain text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-gray-800">文心一言</h4>
+                      <p class="text-sm text-gray-600">wenxin.baidu.com</p>
+                    </div>
+                    <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                  </a>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4
+                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+                >
+                  <i class="fa fa-plus-circle text-green-600 mr-2"></i>
+                  自定义平台
+                  <button
+                    id="add-custom-platform"
+                    class="ml-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                  >
+                    <i class="fa fa-plus mr-1"></i> 添加平台
+                  </button>
+                </h4>
+                <div
+                  id="custom-platforms"
+                  class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                ></div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a
+                  href="https://accoding.buaa.edu.cn/index"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                >
+                  <div
+                    class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4"
+                  >
+                    <i class="fa fa-code text-blue-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">OJ系统</h4>
+                    <p class="text-sm text-gray-600">accoding.buaa.edu.cn</p>
+                  </div>
+                  <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                </a>
+
+                <a
+                  href="https://spoc.buaa.edu.cn/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                >
+                  <div
+                    class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4"
+                  >
+                    <i class="fa fa-university text-green-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">智慧北航</h4>
+                    <p class="text-sm text-gray-600">spoc.buaa.edu.cn</p>
+                  </div>
+                  <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                </a>
+
+                <a
+                  href="https://passport.zhihuishu.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                >
+                  <div
+                    class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4"
+                  >
+                    <i class="fa fa-graduation-cap text-purple-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">智慧树</h4>
+                    <p class="text-sm text-gray-600">passport.zhihuishu.com</p>
+                  </div>
+                  <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                </a>
+
+                <a
+                  href="https://buaa.gaoxiaobang.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                >
+                  <div
+                    class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4"
+                  >
+                    <i class="fa fa-building text-orange-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">高校邦</h4>
+                    <p class="text-sm text-gray-600">buaa.gaoxiaobang.com</p>
+                  </div>
+                  <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                </a>
+
+                <a
+                  href="https://aibuaa.yuketang.cn/pro/portal/home/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 hover:scale-[1.02] border border-gray-100"
+                >
+                  <div
+                    class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4"
+                  >
+                    <i class="fa fa-cloud text-red-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800">雨课堂</h4>
+                    <p class="text-sm text-gray-600">aibuaa.yuketang.cn</p>
+                  </div>
+                  <i class="fa fa-external-link ml-auto text-gray-400"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div id="notes-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <div class="flex justify-between items-center mb-6">
+                <h3
+                  class="text-xl font-semibold text-gray-800 flex items-center"
+                >
+                  <i class="fa fa-sticky-note text-primary mr-2"></i> 心得笔记
+                </h3>
+                <div class="flex items-center space-x-3">
+                  <button
+                    id="add-note-btn"
+                    class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center"
+                  >
+                    <i class="fa fa-plus mr-1"></i> 记录
+                  </button>
+                  <button
+                    id="add-note-block-btn"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center"
+                  >
+                    <i class="fa fa-folder-plus mr-1"></i> 新建文件块
+                  </button>
+                </div>
+              </div>
+
+              <div class="mb-6">
+                <div class="flex items-center space-x-4 mb-4">
+                  <span class="text-sm text-gray-600">今日日期:</span>
+                  <span
+                    id="current-note-date"
+                    class="text-sm font-medium text-gray-800"
+                  ></span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                  <div
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
+                  >
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                      笔记列表
+                    </h4>
+                    <div
+                      id="notes-list"
+                      class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto"
+                    ></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                  >
+                    <h4
+                      class="text-lg font-semibold text-gray-800 mb-3 flex items-center"
+                    >
+                      <i class="fa fa-folder text-yellow-500 mr-2"></i> 文件块
+                    </h4>
+                    <div
+                      id="note-blocks-list"
+                      class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="all-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <h3
+                class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
+              >
+                <i class="fa fa-tasks text-primary mr-2"></i> 所有任务
+                <span class="ml-2 text-sm font-normal text-gray-500"
+                  >(按优先级排序: 未完成 > 重要 > 时间最近)</span
+                >
+              </h3>
+              <div
+                id="all-tasks-list"
+                class="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto scrollbar-hide"
+              ></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div
+      id="add-task-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-gray-800">添加新任务</h3>
+          <button
+            id="close-modal"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <form id="task-form" class="space-y-4">
+          <div>
+            <label
+              for="task-name"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务名称</label
+            >
+            <input
+              type="text"
+              id="task-name"
+              name="task-name"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              placeholder="输入任务名称"
+            />
+          </div>
+
+          <div>
+            <label
+              for="task-type"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务类型</label
+            >
+            <select
+              id="task-type"
+              name="task-type"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            >
+              <option value="deadline">截止时间</option>
+              <option value="timespan">时间段</option>
+            </select>
+          </div>
+
+          <div id="deadline-container">
+            <label
+              for="task-deadline"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >截止时间</label
+            >
+            <input
+              type="datetime-local"
+              id="task-deadline"
+              name="task-deadline"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            />
+          </div>
+
+          <div id="timespan-container" class="hidden">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="task-start"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >开始时间</label
+                >
+                <input
+                  type="datetime-local"
+                  id="task-start"
+                  name="task-start"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  for="task-end"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >结束时间</label
+                >
+                <input
+                  type="datetime-local"
+                  id="task-end"
+                  name="task-end"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                id="task-important"
+                name="task-important"
+                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+              <span class="ml-2 text-sm text-gray-700">标记为重要任务</span>
+            </label>
+          </div>
+
+          <div>
+            <label
+              for="task-notes"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务备注 (可选)</label
+            >
+            <textarea
+              id="task-notes"
+              name="task-notes"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              placeholder="添加任务备注..."
+            ></textarea>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              id="cancel-task"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-custom"
+            >
+              保存任务
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="copy-task-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-gray-800">复制任务</h3>
+          <button
+            id="close-copy-modal"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <form id="copy-task-form" class="space-y-4">
+          <div>
+            <label
+              for="copy-target-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >目标日期</label
+            >
+            <input
+              type="date"
+              id="copy-target-date"
+              name="copy-target-date"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            />
+          </div>
+
+          <div>
+            <label
+              for="copy-target-time"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >目标时间</label
+            >
+            <input
+              type="time"
+              id="copy-target-time"
+              name="copy-target-time"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            />
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              id="cancel-copy-task"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-custom"
+            >
+              复制
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="edit-task-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-gray-800">编辑任务</h3>
+          <button
+            id="close-edit-modal"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <form id="edit-task-form" class="space-y-4">
+          <div>
+            <label
+              for="edit-task-name"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务名称</label
+            >
+            <input
+              type="text"
+              id="edit-task-name"
+              name="edit-task-name"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              placeholder="输入任务名称"
+            />
+          </div>
+
+          <div>
+            <label
+              for="edit-task-type"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务类型</label
+            >
+            <select
+              id="edit-task-type"
+              name="edit-task-type"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            >
+              <option value="deadline">截止时间</option>
+              <option value="timespan">时间段</option>
+            </select>
+          </div>
+
+          <div id="edit-deadline-container">
+            <label
+              for="edit-task-deadline"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >截止时间</label
+            >
+            <input
+              type="datetime-local"
+              id="edit-task-deadline"
+              name="edit-task-deadline"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+            />
+          </div>
+
+          <div id="edit-timespan-container" class="hidden">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="edit-task-start"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >开始时间</label
+                >
+                <input
+                  type="datetime-local"
+                  id="edit-task-start"
+                  name="edit-task-start"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  for="edit-task-end"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >结束时间</label
+                >
+                <input
+                  type="datetime-local"
+                  id="edit-task-end"
+                  name="edit-task-end"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                id="edit-task-important"
+                name="edit-task-important"
+                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+              <span class="ml-2 text-sm text-gray-700">标记为重要任务</span>
+            </label>
+          </div>
+
+          <div>
+            <label
+              for="edit-task-notes"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >任务备注 (可选)</label
+            >
+            <textarea
+              id="edit-task-notes"
+              name="edit-task-notes"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              placeholder="添加任务备注..."
+            ></textarea>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              id="cancel-edit-task"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-custom"
+            >
+              保存修改
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="settings-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 transform transition-all max-h-[90vh] overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">设置</h3>
+          <button
+            id="close-settings"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="space-y-8">
+          <div>
+            <h4 class="text-lg font-medium text-gray-800 mb-4">主题设置</h4>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >默认主题</label
+                >
+                <div class="grid grid-cols-3 gap-3">
+                  <button
+                    class="theme-btn h-12 rounded-lg"
+                    data-theme="default"
+                    style="background: linear-gradient(90deg, #4f9efd, #8ec5fc)"
+                  ></button>
+                  <button
+                    class="theme-btn h-12 rounded-lg"
+                    data-theme="green"
+                    style="background: linear-gradient(90deg, #4caf50, #8bc34a)"
+                  ></button>
+                  <button
+                    class="theme-btn h-12 rounded-lg"
+                    data-theme="purple"
+                    style="background: linear-gradient(90deg, #9c27b0, #ce93d8)"
+                  ></button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >预设背景图片</label
+                >
+                <div class="grid grid-cols-3 gap-3" id="preset-bg-images"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >自定义背景图片</label
+                >
+                <div class="flex items-center space-x-4">
+                  <button
+                    id="import-bg-image"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+                  >
+                    <i class="fa fa-upload mr-2"></i>导入图片
+                  </button>
+                  <input
+                    type="file"
+                    id="bg-image-input"
+                    accept="image/*"
+                    class="hidden"
+                  />
+
+                  <div class="ml-auto">
+                    <label
+                      for="bg-opacity"
+                      class="block text-sm text-gray-600 mb-1"
+                      >透明度</label
+                    >
+                    <input
+                      type="range"
+                      id="bg-opacity"
+                      min="0"
+                      max="100"
+                      value="30"
+                      class="w-32 accent-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-medium text-gray-800 mb-4">字体设置</h4>
+
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="font-size"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  >任务字体大小</label
+                >
+                <input
+                  type="range"
+                  id="font-size"
+                  min="12"
+                  max="18"
+                  value="14"
+                  class="w-full accent-primary"
+                />
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>小</span>
+                  <span>中</span>
+                  <span>大</span>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="task-size"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  >任务项大小</label
+                >
+                <input
+                  type="range"
+                  id="task-size"
+                  min="40"
+                  max="80"
+                  value="56"
+                  class="w-full accent-primary"
+                />
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>小</span>
+                  <span>中</span>
+                  <span>大</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-medium text-gray-800 mb-4">音乐设置</h4>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >预设背景音乐</label
+                >
+                <div class="space-y-2" id="preset-music-list"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >自定义音乐</label
+                >
+                <div class="flex items-center">
+                  <button
+                    id="import-music"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+                  >
+                    <i class="fa fa-music mr-2"></i>导入音乐
+                  </button>
+                  <input
+                    type="file"
+                    id="music-input"
+                    accept="audio/*"
+                    class="hidden ml-4"
+                  />
+                  <span
+                    id="imported-music-name"
+                    class="ml-4 text-sm text-gray-500 hidden"
+                  ></span>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="music-volume"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                  >音量</label
+                >
+                <input
+                  type="range"
+                  id="music-volume"
+                  min="0"
+                  max="100"
+                  value="50"
+                  class="w-full accent-primary"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <audio id="background-music" loop>
+      <source src="" type="audio/mpeg" />
+    </audio>
+
+    <div
+      id="custom-platform-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">添加自定义平台</h3>
+          <button
+            id="close-custom-platform"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >平台名称</label
+            >
+            <input
+              type="text"
+              id="custom-platform-name"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom"
+              placeholder="输入平台名称"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >网址</label
+            >
+            <input
+              type="url"
+              id="custom-platform-url"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom"
+              placeholder="https://example.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >图标</label
+            >
+            <input
+              type="text"
+              id="custom-platform-icon"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom"
+              placeholder="fa fa-globe"
+              value="fa fa-globe"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            id="cancel-custom-platform"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+          >
+            取消
+          </button>
+          <button
+            id="save-custom-platform"
+            class="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-custom"
+          >
+            添加
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="add-note-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">记录笔记</h3>
+          <button
+            id="close-add-note"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >笔记标题</label
+            >
+            <input
+              type="text"
+              id="note-title"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom"
+              placeholder="输入笔记标题"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >笔记内容</label
+            >
+            <textarea
+              id="note-content"
+              rows="6"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom resize-none"
+              placeholder="输入笔记内容"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            id="cancel-add-note"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+          >
+            取消
+          </button>
+          <button
+            id="save-note"
+            class="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-custom"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="create-note-block-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">新建文件块</h3>
+          <button
+            id="close-create-note-block"
+            class="text-gray-500 hover:text-gray-700 transition-custom"
+          >
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >文件块名称</label
+            >
+            <input
+              type="text"
+              id="note-block-name"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-custom"
+              placeholder="输入文件块名称"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button
+            id="cancel-create-note-block"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom"
+          >
+            取消
+          </button>
+          <button
+            id="create-note-block"
+            class="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-custom"
+          >
+            创建
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 进入提示弹窗 -->
+    <div
+      id="welcome-tip-modal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+      >
+        <div class="text-center mb-6">
+          <div
+            class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4"
+          >
+            <i class="fa fa-lightbulb text-primary text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">
+            欢迎使用任务管理系统
+          </h3>
+          <p class="text-gray-600">这里有一些快捷功能帮助您更好地使用</p>
+        </div>
+
+        <div class="space-y-4 mb-6">
+          <div class="flex items-start space-x-3">
+            <i class="fa fa-palette text-primary mt-1"></i>
+            <div>
+              <h4 class="font-medium text-gray-800">主题设置</h4>
+              <p class="text-sm text-gray-600">
+                左上角设置按钮可更改主题颜色和背景
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3">
+            <i class="fa fa-music text-primary mt-1"></i>
+            <div>
+              <h4 class="font-medium text-gray-800">背景音乐</h4>
+              <p class="text-sm text-gray-600">右上角音乐图标可播放背景音乐</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3">
+            <i class="fa fa-clock text-primary mt-1"></i>
+            <div>
+              <h4 class="font-medium text-gray-800">番茄钟</h4>
+              <p class="text-sm text-gray-600">番茄钟视图帮助您专注工作</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center">
+          <button
+            id="close-welcome-tip"
+            class="px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-custom"
+          >
+            知道了
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentUser = null;
+      let tasks = [];
+      let currentView = "day";
+      let currentDate = new Date();
+      let pomodoroInterval = null;
+      let pomodoroTime = 25 * 60;
+      let isPomodoroRunning = false;
+      let currentMusic = null;
+      let backgroundMusic = document.getElementById("background-music");
+
+      const presetBackgrounds = [
+        "picture/a1b51e633f6ebc505393a70ab3d211b2.png",
+        "picture/2.png",
+      ];
+
+      const presetMusics = [
+        { name: "24/7", src: "music/24 7.mp3" },
+        { name: "scared play secret", src: "music/scared play secret.mp3" },
+        { name: "星茶会", src: "music/星茶会.mp3" },
+      ];
+
+      const loginPage = document.getElementById("login-page");
+      const registerPage = document.getElementById("register-page");
+      const appPage = document.getElementById("app-page");
+      const loginForm = document.getElementById("login-form");
+      const registerForm = document.getElementById("register-form");
+      const registerLink = document.getElementById("register-link");
+      const loginLink = document.getElementById("login-link");
+      const logoutBtn = document.getElementById("logout-btn");
+      const currentDateEl = document.getElementById("current-date");
+      const viewTitleEl = document.getElementById("view-title");
+      const navItems = document.querySelectorAll(".nav-item");
+      const addTaskBtn = document.getElementById("add-task-btn");
+      const addTaskModal = document.getElementById("add-task-modal");
+      const closeModalBtn = document.getElementById("close-modal");
+      const cancelTaskBtn = document.getElementById("cancel-task");
+      const taskForm = document.getElementById("task-form");
+      const taskTypeSelect = document.getElementById("task-type");
+      const deadlineContainer = document.getElementById("deadline-container");
+      const timespanContainer = document.getElementById("timespan-container");
+      const settingsBtn = document.getElementById("settings-btn");
+      const settingsModal = document.getElementById("settings-modal");
+      const closeSettingsBtn = document.getElementById("close-settings");
+
+      const copyTaskModal = document.getElementById("copy-task-modal");
+      const closeCopyModalBtn = document.getElementById("close-copy-modal");
+      const copyTaskForm = document.getElementById("copy-task-form");
+      const cancelCopyTaskBtn = document.getElementById("cancel-copy-task");
+      let currentCopyTaskId = null;
+
+      const editTaskModal = document.getElementById("edit-task-modal");
+      const closeEditModalBtn = document.getElementById("close-edit-modal");
+      const editTaskForm = document.getElementById("edit-task-form");
+      const cancelEditTaskBtn = document.getElementById("cancel-edit-task");
+      let currentEditTaskId = null;
+      const musicToggle = document.getElementById("music-toggle");
+      const themeBtns = document.querySelectorAll(".theme-btn");
+      const importBgImageBtn = document.getElementById("import-bg-image");
+      const bgImageInput = document.getElementById("bg-image-input");
+      const bgOpacitySlider = document.getElementById("bg-opacity");
+      const fontSizeSlider = document.getElementById("font-size");
+      const taskSizeSlider = document.getElementById("task-size");
+      const importMusicBtn = document.getElementById("import-music");
+      const musicInput = document.getElementById("music-input");
+      const importedMusicName = document.getElementById("imported-music-name");
+      const musicVolumeSlider = document.getElementById("music-volume");
+      const startPomodoroBtn = document.getElementById("start-pomodoro");
+      const resetPomodoroBtn = document.getElementById("reset-pomodoro");
+      const fullscreenPomodoroBtn = document.getElementById(
+        "fullscreen-pomodoro"
+      );
+      const pomodoroTimerEl = document.getElementById("pomodoro-timer");
+      const pomodoroModeBtns = document.querySelectorAll(".pomodoro-mode-btn");
+      const beijingTimeEl = document.getElementById("beijing-time");
+      const presetBgContainer = document.getElementById("preset-bg-images");
+      const presetMusicContainer = document.getElementById("preset-music-list");
+
+      function init() {
+        loadPresetBackgrounds();
+        loadPresetMusics();
+
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+          loadTasks();
+          showAppPage();
+        }
+
+        updateCurrentDate();
+        setInterval(updateCurrentDate, 60000);
+
+        updateBeijingTime();
+        setInterval(updateBeijingTime, 1000);
+
+        renderDayView();
+        renderWeekView();
+        renderMonthView();
+        renderYearView();
+        renderImportantView();
+        renderCompletedView();
+        renderAllView();
+
+        loadUserSettings();
+
+        setupEventListeners();
+      }
+
+      function loadPresetBackgrounds() {
+        presetBackgrounds.forEach((bg, index) => {
+          const bgEl = document.createElement("div");
+          bgEl.className =
+            "relative rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-custom aspect-video border-2 border-transparent hover:border-primary";
+          bgEl.innerHTML = `
+          <img src="${bg}" alt="背景图片 ${
+            index + 1
+          }" class="w-full h-full object-cover">
+        `;
+
+          bgEl.addEventListener("click", () => {
+            applyBackgroundImage(bg);
+            saveUserSetting("bgImage", bg);
+
+            document
+              .querySelectorAll("#preset-bg-images > div")
+              .forEach((el) => {
+                el.classList.remove("border-primary");
+                el.classList.add("border-transparent");
+              });
+            bgEl.classList.remove("border-transparent");
+            bgEl.classList.add("border-primary");
+          });
+
+          presetBgContainer.appendChild(bgEl);
+        });
+      }
+
+      function loadPresetMusics() {
+        presetMusics.forEach((music) => {
+          const musicEl = document.createElement("div");
+          musicEl.className =
+            "flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-custom";
+          musicEl.innerHTML = `
+          <span>${music.name}</span>
+          <button class="play-music-btn p-1.5 rounded-full hover:bg-gray-200 transition-custom" data-music="${music.src}">
+            <i class="fa fa-play text-primary"></i>
+          </button>
+        `;
+
+          const playBtn = musicEl.querySelector(".play-music-btn");
+          playBtn.addEventListener("click", () => {
+            playMusic(music.src);
+
+            document.querySelectorAll(".play-music-btn").forEach((b) => {
+              b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+            });
+            playBtn.innerHTML = '<i class="fa fa-pause text-primary"></i>';
+
+            currentMusic = music.src;
+            saveUserSetting("currentMusic", music.src);
+          });
+
+          presetMusicContainer.appendChild(musicEl);
+        });
+      }
+
+      function setupEventListeners() {
+        loginForm.addEventListener("submit", handleLogin);
+        registerForm.addEventListener("submit", handleRegister);
+        registerLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          loginPage.classList.add("hidden");
+          registerPage.classList.remove("hidden");
+        });
+        loginLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          registerPage.classList.add("hidden");
+          loginPage.classList.remove("hidden");
+        });
+        logoutBtn.addEventListener("click", handleLogout);
+
+        navItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const view = item.getAttribute("data-view");
+            switchView(view);
+
+            navItems.forEach((nav) => {
+              nav.classList.remove("bg-white/10", "text-white", "font-medium");
+              nav.classList.add("hover:bg-white/10", "text-white/90");
+            });
+            item.classList.remove("hover:bg-white/10", "text-white/90");
+            item.classList.add("bg-white/10", "text-white", "font-medium");
+          });
+        });
+
+        addTaskBtn.addEventListener("click", () => {
+          addTaskModal.classList.remove("hidden");
+
+          const now = new Date();
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          document.getElementById("task-deadline").value = now
+            .toISOString()
+            .slice(0, 16);
+          document.getElementById("task-start").value = now
+            .toISOString()
+            .slice(0, 16);
+
+          const later = new Date(now);
+          later.setHours(later.getHours() + 1);
+          document.getElementById("task-end").value = later
+            .toISOString()
+            .slice(0, 16);
+        });
+
+        closeModalBtn.addEventListener("click", () => {
+          addTaskModal.classList.add("hidden");
+          taskForm.reset();
+        });
+
+        cancelTaskBtn.addEventListener("click", () => {
+          addTaskModal.classList.add("hidden");
+          taskForm.reset();
+        });
+
+        taskForm.addEventListener("submit", handleAddTask);
+
+        taskTypeSelect.addEventListener("change", () => {
+          if (taskTypeSelect.value === "deadline") {
+            deadlineContainer.classList.remove("hidden");
+            timespanContainer.classList.add("hidden");
+            document.getElementById("task-deadline").required = true;
+            document.getElementById("task-start").required = false;
+            document.getElementById("task-end").required = false;
+          } else {
+            deadlineContainer.classList.add("hidden");
+            timespanContainer.classList.remove("hidden");
+            document.getElementById("task-deadline").required = false;
+            document.getElementById("task-start").required = true;
+            document.getElementById("task-end").required = true;
+          }
+        });
+
+        settingsBtn.addEventListener("click", () => {
+          settingsModal.classList.remove("hidden");
+        });
+
+        closeSettingsBtn.addEventListener("click", () => {
+          settingsModal.classList.add("hidden");
+        });
+
+        addTaskModal.addEventListener("click", (e) => {
+          if (e.target === addTaskModal) {
+            addTaskModal.classList.add("hidden");
+            taskForm.reset();
+          }
+        });
+
+        settingsModal.addEventListener("click", (e) => {
+          if (e.target === settingsModal) {
+            settingsModal.classList.add("hidden");
+          }
+        });
+
+        closeCopyModalBtn.addEventListener("click", () => {
+          copyTaskModal.classList.add("hidden");
+          copyTaskForm.reset();
+          currentCopyTaskId = null;
+        });
+
+        cancelCopyTaskBtn.addEventListener("click", () => {
+          copyTaskModal.classList.add("hidden");
+          copyTaskForm.reset();
+          currentCopyTaskId = null;
+        });
+
+        copyTaskForm.addEventListener("submit", handleCopyTask);
+
+        copyTaskModal.addEventListener("click", (e) => {
+          if (e.target === copyTaskModal) {
+            copyTaskModal.classList.add("hidden");
+            copyTaskForm.reset();
+            currentCopyTaskId = null;
+          }
+        });
+
+        closeEditModalBtn.addEventListener("click", () => {
+          editTaskModal.classList.add("hidden");
+          editTaskForm.reset();
+          currentEditTaskId = null;
+        });
+
+        cancelEditTaskBtn.addEventListener("click", () => {
+          editTaskModal.classList.add("hidden");
+          editTaskForm.reset();
+          currentEditTaskId = null;
+        });
+
+        editTaskForm.addEventListener("submit", handleEditTask);
+
+        editTaskModal.addEventListener("click", (e) => {
+          if (e.target === editTaskModal) {
+            editTaskModal.classList.add("hidden");
+            editTaskForm.reset();
+            currentEditTaskId = null;
+          }
+        });
+
+        document
+          .getElementById("edit-task-type")
+          .addEventListener("change", (e) => {
+            const deadlineContainer = document.getElementById(
+              "edit-deadline-container"
+            );
+            const timespanContainer = document.getElementById(
+              "edit-timespan-container"
+            );
+
+            if (e.target.value === "deadline") {
+              deadlineContainer.classList.remove("hidden");
+              timespanContainer.classList.add("hidden");
+              document.getElementById("edit-task-deadline").required = true;
+              document.getElementById("edit-task-start").required = false;
+              document.getElementById("edit-task-end").required = false;
+            } else {
+              deadlineContainer.classList.add("hidden");
+              timespanContainer.classList.remove("hidden");
+              document.getElementById("edit-task-deadline").required = false;
+              document.getElementById("edit-task-start").required = true;
+              document.getElementById("edit-task-end").required = true;
+            }
+          });
+
+        themeBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const theme = btn.getAttribute("data-theme");
+            applyTheme(theme);
+            saveUserSetting("theme", theme);
+          });
+        });
+
+        importBgImageBtn.addEventListener("click", () => {
+          bgImageInput.click();
+        });
+
+        bgImageInput.addEventListener("change", handleBgImageImport);
+
+        bgOpacitySlider.addEventListener("input", () => {
+          const opacity = bgOpacitySlider.value;
+          applyBackgroundOpacity(opacity);
+          saveUserSetting("bgOpacity", opacity);
+        });
+
+        fontSizeSlider.addEventListener("input", () => {
+          const size = fontSizeSlider.value;
+          applyFontSize(size);
+          saveUserSetting("fontSize", size);
+        });
+
+        taskSizeSlider.addEventListener("input", () => {
+          const size = taskSizeSlider.value;
+          applyTaskSize(size);
+          saveUserSetting("taskSize", size);
+        });
+
+        musicToggle.addEventListener("click", toggleMusic);
+
+        importMusicBtn.addEventListener("click", () => {
+          musicInput.click();
+        });
+
+        musicInput.addEventListener("change", handleMusicImport);
+
+        musicVolumeSlider.addEventListener("input", () => {
+          const volume = musicVolumeSlider.value / 100;
+          backgroundMusic.volume = volume;
+          saveUserSetting("musicVolume", volume);
+        });
+
+        startPomodoroBtn.addEventListener("click", togglePomodoro);
+        resetPomodoroBtn.addEventListener("click", resetPomodoro);
+        fullscreenPomodoroBtn.addEventListener(
+          "click",
+          togglePomodoroFullscreen
+        );
+
+        pomodoroModeBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const minutes = parseInt(btn.getAttribute("data-time"));
+            setPomodoroTime(minutes);
+
+            pomodoroModeBtns.forEach((b) => {
+              b.classList.remove("bg-primary", "text-white");
+              b.classList.add("bg-gray-200", "text-gray-700");
+            });
+            btn.classList.remove("bg-gray-200", "text-gray-700");
+            btn.classList.add("bg-primary", "text-white");
+          });
+        });
+
+        document.getElementById("prev-month").addEventListener("click", () => {
+          navigateMonth(-1);
+        });
+
+        document.getElementById("next-month").addEventListener("click", () => {
+          navigateMonth(1);
+        });
+
+        document.getElementById("prev-year").addEventListener("click", () => {
+          navigateYear(-1);
+        });
+
+        document.getElementById("next-year").addEventListener("click", () => {
+          navigateYear(1);
+        });
+        document.getElementById("prev-day").addEventListener("click", () => {
+          navigateDay(-1);
+        });
+
+        document.getElementById("next-day").addEventListener("click", () => {
+          navigateDay(1);
+        });
+
+        document.getElementById("prev-week").addEventListener("click", () => {
+          navigateWeek(-1);
+        });
+
+        document.getElementById("next-week").addEventListener("click", () => {
+          navigateWeek(1);
+        });
+
+        document
+          .getElementById("add-custom-platform")
+          .addEventListener("click", () => {
+            document
+              .getElementById("custom-platform-modal")
+              .classList.remove("hidden");
+          });
+
+        document
+          .getElementById("close-custom-platform")
+          .addEventListener("click", () => {
+            document
+              .getElementById("custom-platform-modal")
+              .classList.add("hidden");
+            document.getElementById("custom-platform-name").value = "";
+            document.getElementById("custom-platform-url").value = "";
+            document.getElementById("custom-platform-icon").value =
+              "fa fa-globe";
+          });
+
+        document
+          .getElementById("cancel-custom-platform")
+          .addEventListener("click", () => {
+            document
+              .getElementById("custom-platform-modal")
+              .classList.add("hidden");
+            document.getElementById("custom-platform-name").value = "";
+            document.getElementById("custom-platform-url").value = "";
+            document.getElementById("custom-platform-icon").value =
+              "fa fa-globe";
+          });
+
+        document
+          .getElementById("save-custom-platform")
+          .addEventListener("click", () => {
+            const name = document
+              .getElementById("custom-platform-name")
+              .value.trim();
+            const url = document
+              .getElementById("custom-platform-url")
+              .value.trim();
+            const icon =
+              document.getElementById("custom-platform-icon").value.trim() ||
+              "fa fa-globe";
+
+            if (!name || !url) {
+              alert("请填写平台名称和网址");
+              return;
+            }
+
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+              alert("网址必须以 http:// 或 https:// 开头");
+              return;
+            }
+
+            addCustomPlatform(name, url, icon);
+            document
+              .getElementById("custom-platform-modal")
+              .classList.add("hidden");
+            document.getElementById("custom-platform-name").value = "";
+            document.getElementById("custom-platform-url").value = "";
+            document.getElementById("custom-platform-icon").value =
+              "fa fa-globe";
+          });
+
+        document
+          .getElementById("custom-platform-modal")
+          .addEventListener("click", (e) => {
+            if (e.target === document.getElementById("custom-platform-modal")) {
+              document
+                .getElementById("custom-platform-modal")
+                .classList.add("hidden");
+              document.getElementById("custom-platform-name").value = "";
+              document.getElementById("custom-platform-url").value = "";
+              document.getElementById("custom-platform-icon").value =
+                "fa fa-globe";
+            }
+          });
+
+        document
+          .getElementById("add-note-btn")
+          .addEventListener("click", () => {
+            document
+              .getElementById("add-note-modal")
+              .classList.remove("hidden");
+            document.getElementById("note-title").focus();
+          });
+
+        document
+          .getElementById("add-note-block-btn")
+          .addEventListener("click", () => {
+            document
+              .getElementById("create-note-block-modal")
+              .classList.remove("hidden");
+            document.getElementById("note-block-name").focus();
+          });
+
+        document
+          .getElementById("close-add-note")
+          .addEventListener("click", () => {
+            document.getElementById("add-note-modal").classList.add("hidden");
+            document.getElementById("note-title").value = "";
+            document.getElementById("note-content").value = "";
+          });
+
+        document
+          .getElementById("cancel-add-note")
+          .addEventListener("click", () => {
+            document.getElementById("add-note-modal").classList.add("hidden");
+            document.getElementById("note-title").value = "";
+            document.getElementById("note-content").value = "";
+          });
+
+        document.getElementById("save-note").addEventListener("click", () => {
+          const title = document.getElementById("note-title").value.trim();
+          const content = document.getElementById("note-content").value.trim();
+
+          if (!title || !content) {
+            alert("请填写笔记标题和内容");
+            return;
+          }
+
+          addNote(title, content);
+          document.getElementById("add-note-modal").classList.add("hidden");
+          document.getElementById("note-title").value = "";
+          document.getElementById("note-content").value = "";
+        });
+
+        document
+          .getElementById("add-note-modal")
+          .addEventListener("click", (e) => {
+            if (e.target === document.getElementById("add-note-modal")) {
+              document.getElementById("add-note-modal").classList.add("hidden");
+              document.getElementById("note-title").value = "";
+              document.getElementById("note-content").value = "";
+            }
+          });
+
+        document
+          .getElementById("close-create-note-block")
+          .addEventListener("click", () => {
+            document
+              .getElementById("create-note-block-modal")
+              .classList.add("hidden");
+            document.getElementById("note-block-name").value = "";
+          });
+
+        document
+          .getElementById("cancel-create-note-block")
+          .addEventListener("click", () => {
+            document
+              .getElementById("create-note-block-modal")
+              .classList.add("hidden");
+            document.getElementById("note-block-name").value = "";
+          });
+
+        document
+          .getElementById("create-note-block")
+          .addEventListener("click", () => {
+            const name = document
+              .getElementById("note-block-name")
+              .value.trim();
+
+            if (!name) {
+              alert("请输入文件块名称");
+              return;
+            }
+
+            createNoteBlock(name);
+            document
+              .getElementById("create-note-block-modal")
+              .classList.add("hidden");
+            document.getElementById("note-block-name").value = "";
+          });
+
+        document
+          .getElementById("create-note-block-modal")
+          .addEventListener("click", (e) => {
+            if (
+              e.target === document.getElementById("create-note-block-modal")
+            ) {
+              document
+                .getElementById("create-note-block-modal")
+                .classList.add("hidden");
+              document.getElementById("note-block-name").value = "";
+            }
+          });
+        document
+          .getElementById("close-welcome-tip")
+          .addEventListener("click", () => {
+            document
+              .getElementById("welcome-tip-modal")
+              .classList.add("hidden");
+          });
+
+        document
+          .getElementById("welcome-tip-modal")
+          .addEventListener("click", (e) => {
+            if (e.target === document.getElementById("welcome-tip-modal")) {
+              document
+                .getElementById("welcome-tip-modal")
+                .classList.add("hidden");
+            }
+          });
+      }
+
+      function handleLogin(e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          alert("请输入用户名和密码");
+          return;
+        }
+
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        const user = users.find(
+          (u) => u.username === username && u.password === password
+        );
+
+        if (user) {
+          currentUser = user;
+          localStorage.setItem("currentUser", JSON.stringify(user));
+          loadTasks();
+          showAppPage();
+          loginForm.reset();
+        } else {
+          alert("用户名或密码不正确");
+        }
+      }
+
+      function handleRegister(e) {
+        e.preventDefault();
+        const username = document.getElementById("reg-username").value;
+        const password = document.getElementById("reg-password").value;
+        const confirmPassword = document.getElementById("reg-confirm").value;
+
+        if (!username || !password || !confirmPassword) {
+          alert("请填写所有字段");
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          alert("两次密码输入不一致");
+          return;
+        }
+
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        if (users.some((u) => u.username === username)) {
+          alert("用户名已存在");
+          return;
+        }
+
+        const newUser = { username, password };
+        users.push(newUser);
+        localStorage.setItem("users", JSON.stringify(users));
+        localStorage.setItem("currentUser", JSON.stringify(newUser));
+
+        currentUser = newUser;
+        tasks = [];
+        saveTasks();
+
+        showAppPage();
+        registerForm.reset();
+      }
+
+      function handleLogout() {
+        localStorage.removeItem("currentUser");
+        currentUser = null;
+        appPage.classList.add("hidden");
+        loginPage.classList.remove("hidden");
+      }
+
+      function showAppPage() {
+        loginPage.classList.add("hidden");
+        registerPage.classList.add("hidden");
+        appPage.classList.remove("hidden");
+        viewTitleEl.textContent = "日视图";
+
+        document.getElementById("welcome-tip-modal").classList.remove("hidden");
+      }
+
+      function switchView(view) {
+        currentView = view;
+
+        document.querySelectorAll(".view-content").forEach((el) => {
+          el.classList.add("hidden");
+        });
+
+        document.getElementById(`${view}-view`).classList.remove("hidden");
+
+        const viewTitles = {
+          day: "日视图",
+          week: "周视图",
+          month: "月视图",
+          year: "年视图",
+          important: "重要任务",
+          completed: "已完成任务",
+          pomodoro: "番茄钟",
+          homework: "作业平台",
+          notes: "心得笔记",
+          all: "总任务",
+        };
+        viewTitleEl.textContent = viewTitles[view] || "任务管理";
+
+        switch (view) {
+          case "day":
+            renderDayView();
+            break;
+          case "week":
+            renderWeekView();
+            break;
+          case "month":
+            renderMonthView();
+            break;
+          case "year":
+            renderYearView();
+            break;
+          case "important":
+            renderImportantView();
+            break;
+          case "completed":
+            renderCompletedView();
+            break;
+          case "homework":
+            break;
+          case "notes":
+            loadNotes();
+            loadNoteBlocks();
+            break;
+          case "all":
+            renderAllView();
+            break;
+        }
+      }
+
+      function updateCurrentDate() {
+        const options = {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long",
+        };
+        currentDateEl.textContent = currentDate.toLocaleDateString(
+          "zh-CN",
+          options
+        );
+
+        const monthOptions = { year: "numeric", month: "long" };
+        document.getElementById("current-month").textContent =
+          currentDate.toLocaleDateString("zh-CN", monthOptions);
+
+        document.getElementById("current-year").textContent =
+          currentDate.getFullYear();
+      }
+
+      function updateBeijingTime() {
+        const now = new Date();
+
+        const beijingTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+
+        const hours = String(beijingTime.getUTCHours()).padStart(2, "0");
+        const minutes = String(beijingTime.getUTCMinutes()).padStart(2, "0");
+        const seconds = String(beijingTime.getUTCSeconds()).padStart(2, "0");
+
+        beijingTimeEl.textContent = `北京时间: ${hours}:${minutes}:${seconds}`;
+      }
+
+      function loadTasks() {
+        if (currentUser) {
+          const savedTasks = localStorage.getItem(
+            `tasks_${currentUser.username}`
+          );
+          tasks = savedTasks ? JSON.parse(savedTasks) : [];
+        }
+      }
+
+      function saveTasks() {
+        if (currentUser) {
+          localStorage.setItem(
+            `tasks_${currentUser.username}`,
+            JSON.stringify(tasks)
+          );
+        }
+      }
+
+      function handleAddTask(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("task-name").value;
+        const type = document.getElementById("task-type").value;
+        const isImportant = document.getElementById("task-important").checked;
+        const notes = document.getElementById("task-notes").value;
+
+        let deadline, start, end;
+
+        if (type === "deadline") {
+          deadline = document.getElementById("task-deadline").value;
+        } else {
+          start = document.getElementById("task-start").value;
+          end = document.getElementById("task-end").value;
+        }
+
+        const newTask = {
+          id: Date.now().toString(),
+          name,
+          type,
+          deadline: type === "deadline" ? deadline : null,
+          start: type === "timespan" ? start : null,
+          end: type === "timespan" ? end : null,
+          isImportant,
+          notes,
+          isCompleted: false,
+          createdAt: new Date().toISOString(),
+        };
+
+        tasks.unshift(newTask);
+        saveTasks();
+
+        switch (currentView) {
+          case "day":
+            renderDayView();
+            break;
+          case "week":
+            renderWeekView();
+            break;
+          case "month":
+            renderMonthView();
+            break;
+          case "year":
+            renderYearView();
+            break;
+          case "important":
+            renderImportantView();
+            break;
+          case "all":
+            renderAllView();
+            break;
+        }
+
+        addTaskModal.classList.add("hidden");
+        taskForm.reset();
+      }
+
+      function toggleTaskCompletion(taskId) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+          task.isCompleted = !task.isCompleted;
+          saveTasks();
+
+          renderDayView();
+          renderWeekView();
+          renderMonthView();
+          renderYearView();
+          renderImportantView();
+          renderCompletedView();
+          renderAllView();
+        }
+      }
+
+      function duplicateTask(taskId) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (task) {
+          currentCopyTaskId = taskId;
+
+          let defaultDate, defaultTime;
+          if (task.type === "deadline" && task.deadline) {
+            const deadlineDate = new Date(task.deadline);
+            defaultDate = deadlineDate.toISOString().split("T")[0];
+            defaultTime = deadlineDate.toTimeString().slice(0, 5);
+          } else if (task.type === "timespan" && task.start) {
+            const startDate = new Date(task.start);
+            defaultDate = startDate.toISOString().split("T")[0];
+            defaultTime = startDate.toTimeString().slice(0, 5);
+          } else {
+            const now = new Date();
+            defaultDate = now.toISOString().split("T")[0];
+            defaultTime = now.toTimeString().slice(0, 5);
+          }
+
+          document.getElementById("copy-target-date").value = defaultDate;
+          document.getElementById("copy-target-time").value = defaultTime;
+
+          copyTaskModal.classList.remove("hidden");
+        }
+      }
+
+      function handleCopyTask(e) {
+        e.preventDefault();
+
+        if (!currentCopyTaskId) return;
+
+        const task = tasks.find((t) => t.id === currentCopyTaskId);
+        if (!task) return;
+
+        const targetDate = document.getElementById("copy-target-date").value;
+        const targetTime = document.getElementById("copy-target-time").value;
+
+        let newDateTime;
+        if (task.type === "deadline") {
+          newDateTime = `${targetDate}T${targetTime}`;
+        } else if (task.type === "timespan") {
+          const originalStart = new Date(task.start);
+          const originalEnd = new Date(task.end);
+          const duration = originalEnd - originalStart;
+
+          const newStart = new Date(`${targetDate}T${targetTime}`);
+          const newEnd = new Date(newStart.getTime() + duration);
+
+          newDateTime = {
+            start: newStart.toISOString(),
+            end: newEnd.toISOString(),
+          };
+        }
+
+        const newTask = {
+          ...task,
+          id: Date.now().toString() + "_copy",
+          isCompleted: false,
+          createdAt: new Date().toISOString(),
+        };
+
+        if (task.type === "deadline") {
+          newTask.deadline = newDateTime;
+        } else if (task.type === "timespan") {
+          newTask.start = newDateTime.start;
+          newTask.end = newDateTime.end;
+        }
+
+        tasks.unshift(newTask);
+        saveTasks();
+
+        copyTaskModal.classList.add("hidden");
+        copyTaskForm.reset();
+        currentCopyTaskId = null;
+
+        switch (currentView) {
+          case "day":
+            renderDayView();
+            break;
+          case "week":
+            renderWeekView();
+            break;
+          case "month":
+            renderMonthView();
+            break;
+          case "year":
+            renderYearView();
+            break;
+          case "important":
+            renderImportantView();
+            break;
+          case "all":
+            renderAllView();
+            break;
+        }
+      }
+
+      function editTask(taskId) {
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task) return;
+
+        currentEditTaskId = taskId;
+
+        document.getElementById("edit-task-name").value = task.name;
+        document.getElementById("edit-task-type").value = task.type;
+        document.getElementById("edit-task-important").checked =
+          task.isImportant;
+        document.getElementById("edit-task-notes").value = task.notes || "";
+
+        const deadlineContainer = document.getElementById(
+          "edit-deadline-container"
+        );
+        const timespanContainer = document.getElementById(
+          "edit-timespan-container"
+        );
+
+        if (task.type === "deadline") {
+          deadlineContainer.classList.remove("hidden");
+          timespanContainer.classList.add("hidden");
+          document.getElementById("edit-task-deadline").required = true;
+          document.getElementById("edit-task-start").required = false;
+          document.getElementById("edit-task-end").required = false;
+
+          if (task.deadline) {
+            const deadlineDate = new Date(task.deadline);
+            deadlineDate.setMinutes(
+              deadlineDate.getMinutes() - deadlineDate.getTimezoneOffset()
+            );
+            document.getElementById("edit-task-deadline").value = deadlineDate
+              .toISOString()
+              .slice(0, 16);
+          }
+        } else if (task.type === "timespan") {
+          deadlineContainer.classList.add("hidden");
+          timespanContainer.classList.remove("hidden");
+          document.getElementById("edit-task-deadline").required = false;
+          document.getElementById("edit-task-start").required = true;
+          document.getElementById("edit-task-end").required = true;
+
+          if (task.start) {
+            const startDate = new Date(task.start);
+            startDate.setMinutes(
+              startDate.getMinutes() - startDate.getTimezoneOffset()
+            );
+            document.getElementById("edit-task-start").value = startDate
+              .toISOString()
+              .slice(0, 16);
+          }
+
+          if (task.end) {
+            const endDate = new Date(task.end);
+            endDate.setMinutes(
+              endDate.getMinutes() - endDate.getTimezoneOffset()
+            );
+            document.getElementById("edit-task-end").value = endDate
+              .toISOString()
+              .slice(0, 16);
+          }
+        }
+
+        editTaskModal.classList.remove("hidden");
+      }
+
+      function handleEditTask(e) {
+        e.preventDefault();
+
+        if (!currentEditTaskId) return;
+
+        const task = tasks.find((t) => t.id === currentEditTaskId);
+        if (!task) return;
+
+        const name = document.getElementById("edit-task-name").value;
+        const type = document.getElementById("edit-task-type").value;
+        const isImportant = document.getElementById(
+          "edit-task-important"
+        ).checked;
+        const notes = document.getElementById("edit-task-notes").value;
+
+        task.name = name;
+        task.type = type;
+        task.isImportant = isImportant;
+        task.notes = notes;
+
+        if (type === "deadline") {
+          task.deadline = document.getElementById("edit-task-deadline").value;
+          task.start = null;
+          task.end = null;
+        } else if (type === "timespan") {
+          task.start = document.getElementById("edit-task-start").value;
+          task.end = document.getElementById("edit-task-end").value;
+          task.deadline = null;
+        }
+
+        saveTasks();
+
+        editTaskModal.classList.add("hidden");
+        editTaskForm.reset();
+        currentEditTaskId = null;
+
+        renderDayView();
+        renderWeekView();
+        renderMonthView();
+        renderYearView();
+        renderImportantView();
+        renderCompletedView();
+        renderAllView();
+      }
+
+      function deleteTask(taskId) {
+        if (confirm("确定要删除这个任务吗？")) {
+          tasks = tasks.filter((t) => t.id !== taskId);
+          saveTasks();
+
+          renderDayView();
+          renderWeekView();
+          renderMonthView();
+          renderYearView();
+          renderImportantView();
+          renderCompletedView();
+          renderAllView();
+        }
+      }
+
+      function createTaskElement(task) {
+        const taskEl = document.createElement("div");
+        taskEl.className = `task-item bg-white rounded-lg shadow-sm p-3 border-l-4 ${
+          task.isImportant ? "border-l-important" : "border-l-primary"
+        } ${task.isCompleted ? "opacity-60" : ""}`;
+
+        const taskHeight =
+          localStorage.getItem(`taskSize_${currentUser?.username}`) || 56;
+        taskEl.style.minHeight = `${taskHeight}px`;
+
+        const fontSize =
+          localStorage.getItem(`fontSize_${currentUser?.username}`) || 14;
+        taskEl.style.fontSize = `${fontSize}px`;
+
+        let timeText = "";
+        if (task.type === "deadline" && task.deadline) {
+          const date = new Date(task.deadline);
+          timeText = `截止: ${date.toLocaleString("zh-CN")}`;
+        } else if (task.type === "timespan" && task.start && task.end) {
+          const startDate = new Date(task.start);
+          const endDate = new Date(task.end);
+          timeText = `${startDate.toLocaleString(
+            "zh-CN"
+          )} - ${endDate.toLocaleString("zh-CN")}`;
+        }
+
+        taskEl.innerHTML = `
+        <div class="flex justify-between items-start">
+          <div class="flex-1 mr-2">
+            <h4 class="font-medium ${
+              task.isCompleted ? "text-completed line-through" : ""
+            }">${task.name}</h4>
+            <p class="text-xs text-gray-500 mt-1">${timeText}</p>
+            ${
+              task.notes
+                ? `<p class="text-sm text-gray-600 mt-1">${task.notes}</p>`
+                : ""
+            }
+          </div>
+          <div class="flex flex-col items-center space-y-1">
+            <button class="complete-task p-1.5 rounded-full hover:bg-gray-100 transition-custom" data-id="${
+              task.id
+            }">
+              <i class="fa ${
+                task.isCompleted
+                  ? "fa-check text-success"
+                  : "fa-circle-o text-gray-400"
+              }"></i>
+            </button>
+            <button class="edit-task p-1.5 rounded-full hover:bg-gray-100 transition-custom" data-id="${
+              task.id
+            }">
+              <i class="fa fa-edit text-gray-500"></i>
+            </button>
+            <button class="duplicate-task p-1.5 rounded-full hover:bg-gray-100 transition-custom" data-id="${
+              task.id
+            }">
+              <i class="fa fa-copy text-gray-500"></i>
+            </button>
+            <button class="delete-task p-1.5 rounded-full hover:bg-gray-100 transition-custom" data-id="${
+              task.id
+            }">
+              <i class="fa fa-trash text-gray-500"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+        taskEl.querySelector(".complete-task").addEventListener("click", () => {
+          toggleTaskCompletion(task.id);
+        });
+
+        taskEl
+          .querySelector(".duplicate-task")
+          .addEventListener("click", () => {
+            duplicateTask(task.id);
+          });
+
+        taskEl.querySelector(".edit-task").addEventListener("click", () => {
+          editTask(task.id);
+        });
+
+        taskEl.querySelector(".delete-task").addEventListener("click", () => {
+          deleteTask(task.id);
+        });
+
+        return taskEl;
+      }
+
+      function renderDayView() {
+        const morningTasksEl = document.getElementById("morning-tasks");
+        const noonTasksEl = document.getElementById("noon-tasks");
+        const eveningTasksEl = document.getElementById("evening-tasks");
+
+        const currentDayEl = document.getElementById("current-day");
+        if (currentDayEl) {
+          const options = {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "long",
+          };
+          currentDayEl.textContent = currentDate.toLocaleDateString(
+            "zh-CN",
+            options
+          );
+        }
+
+        morningTasksEl.innerHTML = "";
+        noonTasksEl.innerHTML = "";
+        eveningTasksEl.innerHTML = "";
+
+        const today = currentDate.toISOString().split("T")[0];
+
+        const todayTasks = tasks.filter((task) => {
+          if (task.isCompleted) return false;
+
+          if (task.type === "deadline" && task.deadline) {
+            return task.deadline.split("T")[0] === today;
+          } else if (task.type === "timespan" && task.start) {
+            return task.start.split("T")[0] === today;
+          }
+          return false;
+        });
+
+        todayTasks.sort((a, b) => {
+          const timeA = a.type === "deadline" ? a.deadline : a.start;
+          const timeB = b.type === "deadline" ? b.deadline : b.start;
+          return new Date(timeA) - new Date(timeB);
+        });
+
+        todayTasks.forEach((task) => {
+          const timeStr = task.type === "deadline" ? task.deadline : task.start;
+          const hour = new Date(timeStr).getHours();
+
+          const taskEl = createTaskElement(task);
+
+          if (hour < 12) {
+            morningTasksEl.appendChild(taskEl);
+          } else if (hour < 14) {
+            noonTasksEl.appendChild(taskEl);
+          } else {
+            eveningTasksEl.appendChild(taskEl);
+          }
+        });
+
+        if (morningTasksEl.children.length === 0) {
+          morningTasksEl.innerHTML =
+            '<p class="text-gray-400 text-center py-4">上午没有任务</p>';
+        }
+
+        if (noonTasksEl.children.length === 0) {
+          noonTasksEl.innerHTML =
+            '<p class="text-gray-400 text-center py-4">中午没有任务</p>';
+        }
+
+        if (eveningTasksEl.children.length === 0) {
+          eveningTasksEl.innerHTML =
+            '<p class="text-gray-400 text-center py-4">下午/晚上没有任务</p>';
+        }
+      }
+
+      function renderWeekView() {
+        const day = currentDate.getDay() || 7;
+        const monday = new Date(currentDate);
+        monday.setDate(currentDate.getDate() - (day - 1));
+
+        const weekDays = [];
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(monday);
+          date.setDate(monday.getDate() + i);
+          weekDays.push(date.toISOString().split("T")[0]);
+        }
+
+        const currentWeekEl = document.getElementById("current-week");
+        if (currentWeekEl) {
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          const options = { month: "short", day: "numeric" };
+          currentWeekEl.textContent = `${monday.toLocaleDateString(
+            "zh-CN",
+            options
+          )} - ${sunday.toLocaleDateString("zh-CN", options)}`;
+        }
+
+        const dayContainers = [
+          document.getElementById("monday-tasks"),
+          document.getElementById("tuesday-tasks"),
+          document.getElementById("wednesday-tasks"),
+          document.getElementById("thursday-tasks"),
+          document.getElementById("friday-tasks"),
+          document.getElementById("saturday-tasks"),
+          document.getElementById("sunday-tasks"),
+        ];
+
+        dayContainers.forEach((container) => {
+          container.innerHTML = "";
+        });
+
+        const weekTasks = tasks.filter((task) => {
+          if (task.isCompleted) return false;
+
+          let taskDate;
+          if (task.type === "deadline" && task.deadline) {
+            taskDate = task.deadline.split("T")[0];
+          } else if (task.type === "timespan" && task.start) {
+            taskDate = task.start.split("T")[0];
+          } else {
+            return false;
+          }
+
+          return weekDays.includes(taskDate);
+        });
+
+        weekTasks.sort((a, b) => {
+          const timeA = a.type === "deadline" ? a.deadline : a.start;
+          const timeB = b.type === "deadline" ? b.deadline : b.start;
+          return new Date(timeA) - new Date(timeB);
+        });
+
+        weekTasks.forEach((task) => {
+          const dateStr =
+            task.type === "deadline"
+              ? task.deadline.split("T")[0]
+              : task.start.split("T")[0];
+          const dayIndex = weekDays.indexOf(dateStr);
+
+          if (dayIndex !== -1) {
+            const taskEl = createTaskElement(task);
+            dayContainers[dayIndex].appendChild(taskEl);
+          }
+        });
+
+        dayContainers.forEach((container) => {
+          if (container.children.length === 0) {
+            container.innerHTML =
+              '<p class="text-gray-400 text-center py-4">没有任务</p>';
+          }
+        });
+
+        dayContainers.forEach((container, index) => {
+          const date = new Date(monday);
+          date.setDate(monday.getDate() + index);
+
+          container.style.cursor = "pointer";
+          container.addEventListener("click", () => {
+            currentDate = date;
+            switchView("day");
+          });
+        });
+      }
+
+      function renderMonthView() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const firstDayOfWeek = firstDay.getDay();
+
+        const daysInMonth = lastDay.getDate();
+
+        const calendarGrid = document.getElementById("calendar-grid");
+        calendarGrid.innerHTML = "";
+
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const emptyDay = document.createElement("div");
+          emptyDay.className =
+            "h-32 bg-gray-50 rounded-lg border border-gray-100 p-2 opacity-30";
+          calendarGrid.appendChild(emptyDay);
+        }
+
+        const monthTasks = tasks.filter((task) => {
+          if (task.isCompleted) return false;
+
+          let taskDate;
+          if (task.type === "deadline" && task.deadline) {
+            const date = new Date(task.deadline);
+            taskDate = date;
+          } else if (task.type === "timespan" && task.start) {
+            const date = new Date(task.start);
+            taskDate = date;
+          } else {
+            return false;
+          }
+
+          return (
+            taskDate.getFullYear() === year && taskDate.getMonth() === month
+          );
+        });
+
+        const tasksByDate = {};
+        monthTasks.forEach((task) => {
+          const dateStr =
+            task.type === "deadline"
+              ? task.deadline.split("T")[0]
+              : task.start.split("T")[0];
+          const date = new Date(dateStr).getDate();
+
+          if (!tasksByDate[date]) {
+            tasksByDate[date] = [];
+          }
+
+          tasksByDate[date].push(task);
+        });
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dayEl = document.createElement("div");
+          dayEl.className = `h-32 bg-gray-50 rounded-lg border border-gray-200 p-2 overflow-y-auto scrollbar-hide hover:bg-gray-100 cursor-pointer transition-colors ${
+            new Date(year, month, day).toDateString() ===
+            currentDate.toDateString()
+              ? "ring-2 ring-primary"
+              : ""
+          }`;
+
+          dayEl.addEventListener("click", () => {
+            const clickedDate = new Date(year, month, day);
+            currentDate = clickedDate;
+            switchView("day");
+          });
+
+          const dayHeader = document.createElement("div");
+          dayHeader.className = "font-medium text-gray-800 mb-1";
+          dayHeader.textContent = day;
+          dayEl.appendChild(dayHeader);
+
+          const dayTasks = tasksByDate[day] || [];
+
+          dayTasks.sort((a, b) => {
+            if (a.isImportant && !b.isImportant) return -1;
+            if (!a.isImportant && b.isImportant) return 1;
+
+            const timeA = a.type === "deadline" ? a.deadline : a.start;
+            const timeB = b.type === "deadline" ? b.deadline : b.start;
+            return new Date(timeA) - new Date(timeB);
+          });
+
+          const taskContainer = document.createElement("div");
+          taskContainer.className = "space-y-1";
+
+          if (dayTasks.length > 0) {
+            const displayTasks = dayTasks.slice(0, 2);
+            displayTasks.forEach((task) => {
+              const taskMini = document.createElement("div");
+              taskMini.className = `text-xs p-1 rounded ${
+                task.isImportant
+                  ? "bg-important/10 text-important"
+                  : "bg-gray-100"
+              }`;
+              taskMini.textContent = task.name;
+              taskContainer.appendChild(taskMini);
+            });
+
+            if (dayTasks.length > 2) {
+              const moreEl = document.createElement("div");
+              moreEl.className = "text-xs text-gray-500 text-center";
+              moreEl.textContent = `+${dayTasks.length - 2} 个任务`;
+              taskContainer.appendChild(moreEl);
+            }
+          } else {
+            const emptyEl = document.createElement("div");
+            emptyEl.className = "text-xs text-gray-400";
+            emptyEl.textContent = "无任务";
+            taskContainer.appendChild(emptyEl);
+          }
+
+          dayEl.appendChild(taskContainer);
+          calendarGrid.appendChild(dayEl);
+        }
+      }
+
+      function navigateDay(direction) {
+        currentDate.setDate(currentDate.getDate() + direction);
+        renderDayView();
+
+        updateCurrentDate();
+      }
+
+      function navigateWeek(direction) {
+        currentDate.setDate(currentDate.getDate() + direction * 7);
+        renderWeekView();
+
+        updateCurrentDate();
+      }
+
+      function navigateMonth(direction) {
+        currentDate.setMonth(currentDate.getMonth() + direction);
+        renderMonthView();
+        updateCurrentDate();
+      }
+
+      function navigateYear(direction) {
+        renderYearView();
+      }
+
+      function renderYearView() {
+        const year = currentDate.getFullYear();
+
+        document.getElementById("current-year").textContent = year;
+
+        const monthContainer = document.querySelector("#year-view .grid");
+        monthContainer.innerHTML = "";
+
+        const monthNames = [
+          "一月",
+          "二月",
+          "三月",
+          "四月",
+          "五月",
+          "六月",
+          "七月",
+          "八月",
+          "九月",
+          "十月",
+          "十一月",
+          "十二月",
+        ];
+
+        const yearTasks = tasks.filter((task) => {
+          if (task.isCompleted) return false;
+
+          let taskDate;
+          if (task.type === "deadline" && task.deadline) {
+            const date = new Date(task.deadline);
+            taskDate = date;
+          } else if (task.type === "timespan" && task.start) {
+            const date = new Date(task.start);
+            taskDate = date;
+          } else {
+            return false;
+          }
+
+          return taskDate.getFullYear() === year;
+        });
+
+        const tasksByMonth = {};
+        for (let i = 0; i < 12; i++) {
+          tasksByMonth[i] = [];
+        }
+
+        yearTasks.forEach((task) => {
+          const dateStr =
+            task.type === "deadline"
+              ? task.deadline.split("T")[0]
+              : task.start.split("T")[0];
+          const month = new Date(dateStr).getMonth();
+
+          tasksByMonth[month].push(task);
+        });
+
+        for (let month = 0; month < 12; month++) {
+          const monthTasks = tasksByMonth[month];
+
+          const monthCard = document.createElement("div");
+          monthCard.className = `bg-white rounded-xl shadow-sm p-4 border hover:shadow-md cursor-pointer transition-all ${
+            month === currentDate.getMonth()
+              ? "border-primary"
+              : "border-gray-200"
+          }`;
+
+          monthCard.addEventListener("click", () => {
+            const clickedDate = new Date(year, month, 1);
+            currentDate = clickedDate;
+            switchView("month");
+          });
+
+          const monthHeader = document.createElement("div");
+          monthHeader.className = `font-semibold text-gray-800 mb-2 ${
+            month === currentDate.getMonth() ? "text-primary" : ""
+          }`;
+          monthHeader.textContent = monthNames[month];
+          monthCard.appendChild(monthHeader);
+
+          const statsEl = document.createElement("div");
+          statsEl.className = "text-sm text-gray-500 mb-2";
+          statsEl.textContent = `共 ${monthTasks.length} 个任务`;
+          monthCard.appendChild(statsEl);
+
+          const importantTasks = monthTasks.filter((t) => t.isImportant);
+          if (importantTasks.length > 0) {
+            const importantEl = document.createElement("div");
+            importantEl.className = "text-xs text-important flex items-center";
+            importantEl.innerHTML = `<i class="fa fa-star mr-1"></i> ${importantTasks.length} 个重要任务`;
+            monthCard.appendChild(importantEl);
+          }
+
+          monthContainer.appendChild(monthCard);
+        }
+      }
+
+      function navigateYear(direction) {
+        currentDate.setFullYear(currentDate.getFullYear() + direction);
+        renderYearView();
+
+        updateCurrentDate();
+      }
+
+      function renderImportantView() {
+        const container = document.getElementById("important-tasks-list");
+        container.innerHTML = "";
+
+        const importantTasks = tasks.filter(
+          (task) => task.isImportant && !task.isCompleted
+        );
+
+        importantTasks.sort((a, b) => {
+          const timeA = a.type === "deadline" ? a.deadline : a.start;
+          const timeB = b.type === "deadline" ? b.deadline : b.start;
+          return new Date(timeA) - new Date(timeB);
+        });
+
+        if (importantTasks.length === 0) {
+          container.innerHTML =
+            '<p class="text-gray-400 text-center py-8">没有重要任务</p>';
+          return;
+        }
+
+        importantTasks.forEach((task) => {
+          const taskEl = createTaskElement(task);
+          container.appendChild(taskEl);
+        });
+      }
+
+      function renderCompletedView() {
+        const container = document.getElementById("completed-tasks-list");
+        container.innerHTML = "";
+
+        const completedTasks = tasks.filter((task) => task.isCompleted);
+
+        completedTasks.sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        if (completedTasks.length === 0) {
+          container.innerHTML =
+            '<p class="text-gray-400 text-center py-8">没有已完成的任务</p>';
+          return;
+        }
+
+        completedTasks.forEach((task) => {
+          const taskEl = createTaskElement(task);
+          container.appendChild(taskEl);
+        });
+      }
+
+      function renderAllView() {
+        const container = document.getElementById("all-tasks-list");
+        container.innerHTML = "";
+
+        const allTasks = [...tasks];
+
+        allTasks.sort((a, b) => {
+          if (!a.isCompleted && b.isCompleted) return -1;
+          if (a.isCompleted && !b.isCompleted) return 1;
+
+          if (a.isImportant && !b.isImportant) return -1;
+          if (!a.isImportant && b.isImportant) return 1;
+
+          const timeA = a.type === "deadline" ? a.deadline : a.start;
+          const timeB = b.type === "deadline" ? b.deadline : b.start;
+          return new Date(timeA) - new Date(timeB);
+        });
+
+        if (allTasks.length === 0) {
+          container.innerHTML =
+            '<p class="text-gray-400 text-center py-8">没有任务</p>';
+          return;
+        }
+
+        allTasks.forEach((task) => {
+          const taskEl = createTaskElement(task);
+          container.appendChild(taskEl);
+        });
+      }
+
+      function togglePomodoro() {
+        if (isPomodoroRunning) {
+          clearInterval(pomodoroInterval);
+          startPomodoroBtn.innerHTML = '<i class="fa fa-play mr-2"></i>继续';
+          document.getElementById("pomodoro-circle").classList.remove("pulse");
+        } else {
+          pomodoroInterval = setInterval(updatePomodoroTimer, 1000);
+          startPomodoroBtn.innerHTML = '<i class="fa fa-pause mr-2"></i>暂停';
+          document.getElementById("pomodoro-circle").classList.add("pulse");
+        }
+
+        isPomodoroRunning = !isPomodoroRunning;
+      }
+
+      function updatePomodoroTimer() {
+        pomodoroTime--;
+
+        if (pomodoroTime <= 0) {
+          clearInterval(pomodoroInterval);
+          isPomodoroRunning = false;
+          startPomodoroBtn.innerHTML = '<i class="fa fa-play mr-2"></i>开始';
+          document.getElementById("pomodoro-circle").classList.remove("pulse");
+
+          const audio = new Audio("music/notification.mp3");
+          audio.play().catch((e) => {
+            console.log("播放提示音失败:", e);
+          });
+
+          return;
+        }
+
+        const minutes = Math.floor(pomodoroTime / 60);
+        const seconds = pomodoroTime % 60;
+        pomodoroTimerEl.textContent = `${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      }
+
+      function setPomodoroTime(minutes) {
+        clearInterval(pomodoroInterval);
+        isPomodoroRunning = false;
+
+        pomodoroTime = minutes * 60;
+        pomodoroTimerEl.textContent = `${minutes
+          .toString()
+          .padStart(2, "0")}:00`;
+        startPomodoroBtn.innerHTML = '<i class="fa fa-play mr-2"></i>开始';
+        document.getElementById("pomodoro-circle").classList.remove("pulse");
+      }
+
+      function resetPomodoro() {
+        let selectedMinutes = 25;
+        pomodoroModeBtns.forEach((btn) => {
+          if (btn.classList.contains("bg-primary")) {
+            selectedMinutes = parseInt(btn.getAttribute("data-time"));
+          }
+        });
+
+        setPomodoroTime(selectedMinutes);
+      }
+
+      function togglePomodoroFullscreen() {
+        const pomodoroView = document.getElementById("pomodoro-view");
+
+        if (!document.fullscreenElement) {
+          if (pomodoroView.requestFullscreen) {
+            pomodoroView.requestFullscreen();
+          } else if (pomodoroView.webkitRequestFullscreen) {
+            pomodoroView.webkitRequestFullscreen();
+          } else if (pomodoroView.msRequestFullscreen) {
+            pomodoroView.msRequestFullscreen();
+          }
+          fullscreenPomodoroBtn.innerHTML = '<i class="fa fa-compress"></i>';
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+          fullscreenPomodoroBtn.innerHTML = '<i class="fa fa-expand"></i>';
+        }
+      }
+
+      function playMusic(src) {
+        if (backgroundMusic.src.includes(src) && !backgroundMusic.paused) {
+          backgroundMusic.pause();
+          musicToggle.innerHTML = '<i class="fa fa-volume-off"></i>';
+
+          document.querySelectorAll(".play-music-btn").forEach((b) => {
+            if (b.getAttribute("data-music") === src) {
+              b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+            }
+          });
+          currentMusic = null;
+          return;
+        }
+
+        backgroundMusic.src = src;
+        backgroundMusic.play().catch((e) => {
+          console.log("播放失败:", e);
+          alert("播放音乐需要用户交互，请先点击播放按钮");
+        });
+        musicToggle.innerHTML = '<i class="fa fa-volume-up"></i>';
+
+        document.querySelectorAll(".play-music-btn").forEach((b) => {
+          if (b.getAttribute("data-music") === src) {
+            b.innerHTML = '<i class="fa fa-pause text-primary"></i>';
+          } else {
+            b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+          }
+        });
+
+        currentMusic = src;
+        saveUserSetting("currentMusic", src);
+      }
+
+      function toggleMusic() {
+        if (backgroundMusic.paused) {
+          if (backgroundMusic.src) {
+            backgroundMusic.play().catch((e) => {
+              console.log("播放失败:", e);
+              alert("播放音乐需要用户交互，请先在设置中选择音乐");
+            });
+            musicToggle.innerHTML = '<i class="fa fa-volume-up"></i>';
+
+            if (currentMusic) {
+              document.querySelectorAll(".play-music-btn").forEach((b) => {
+                if (b.getAttribute("data-music") === currentMusic) {
+                  b.innerHTML = '<i class="fa fa-pause text-primary"></i>';
+                } else {
+                  b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+                }
+              });
+            }
+          } else {
+            playMusic("music/relaxing-piano.mp3");
+          }
+        } else {
+          backgroundMusic.pause();
+          musicToggle.innerHTML = '<i class="fa fa-volume-off"></i>';
+
+          if (currentMusic) {
+            document.querySelectorAll(".play-music-btn").forEach((b) => {
+              if (b.getAttribute("data-music") === currentMusic) {
+                b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+              }
+            });
+          }
+        }
+      }
+
+      function handleMusicImport(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const audioUrl = URL.createObjectURL(file);
+          playMusic(audioUrl);
+
+          importedMusicName.textContent = file.name;
+          importedMusicName.classList.remove("hidden");
+
+          currentMusic = audioUrl;
+          saveUserSetting("currentMusic", audioUrl);
+          saveUserSetting("importedMusicName", file.name);
+        }
+      }
+
+      function handleBgImageImport(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const imgUrl = URL.createObjectURL(file);
+          applyBackgroundImage(imgUrl);
+
+          saveUserSetting("bgImage", imgUrl);
+
+          document.querySelectorAll("#preset-bg-images > div").forEach((el) => {
+            el.classList.remove("border-primary");
+            el.classList.add("border-transparent");
+          });
+        }
+      }
+
+      function applyTheme(theme) {
+        const mainGradient = document.querySelector(".main-gradient");
+        const sidebarGradient = document.querySelector(".sidebar-gradient");
+
+        switch (theme) {
+          case "default":
+            mainGradient.style.background =
+              "linear-gradient(90deg, #8EC5FC, #FFFFFF)";
+            sidebarGradient.style.background =
+              "linear-gradient(180deg, #4F9EFD, #8EC5FC)";
+            break;
+          case "green":
+            mainGradient.style.background =
+              "linear-gradient(90deg, #8BC34A, #FFFFFF)";
+            sidebarGradient.style.background =
+              "linear-gradient(180deg, #4CAF50, #8BC34A)";
+            break;
+          case "purple":
+            mainGradient.style.background =
+              "linear-gradient(90deg, #CE93D8, #FFFFFF)";
+            sidebarGradient.style.background =
+              "linear-gradient(180deg, #9C27B0, #CE93D8)";
+            break;
+        }
+
+        themeBtns.forEach((btn) => {
+          if (btn.getAttribute("data-theme") === theme) {
+            btn.classList.add("ring-2", "ring-offset-2", "ring-primary");
+          } else {
+            btn.classList.remove("ring-2", "ring-offset-2", "ring-primary");
+          }
+        });
+      }
+
+      function applyBackgroundImage(url) {
+        const mainContent = document.querySelector("#app-page .main-gradient");
+        mainContent.style.backgroundImage = `url(${url})`;
+        mainContent.style.backgroundSize = "cover";
+        mainContent.style.backgroundPosition = "center";
+
+        const opacity =
+          localStorage.getItem(`bgOpacity_${currentUser?.username}`) || 30;
+        applyBackgroundOpacity(opacity);
+      }
+
+      function applyBackgroundOpacity(opacity) {
+        const mainContent = document.querySelector("#app-page .main-gradient");
+        const opacityValue = opacity / 100;
+        mainContent.style.backgroundBlendMode = "overlay";
+        mainContent.style.backgroundColor = `rgba(255, 255, 255, ${
+          1 - opacityValue
+        })`;
+      }
+
+      function applyFontSize(size) {
+        document.documentElement.style.setProperty(
+          "--task-font-size",
+          `${size}px`
+        );
+
+        document.querySelectorAll(".task-item").forEach((item) => {
+          item.style.fontSize = `${size}px`;
+        });
+      }
+
+      function applyTaskSize(size) {
+        document.documentElement.style.setProperty(
+          "--task-height",
+          `${size}px`
+        );
+
+        document.querySelectorAll(".task-item").forEach((item) => {
+          item.style.minHeight = `${size}px`;
+        });
+      }
+
+      function saveUserSetting(key, value) {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+          settings[key] = value;
+          localStorage.setItem(
+            `settings_${currentUser.username}`,
+            JSON.stringify(settings)
+          );
+        }
+      }
+
+      function loadUserSettings() {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+
+          if (settings.theme) {
+            applyTheme(settings.theme);
+          }
+
+          if (settings.bgImage) {
+            applyBackgroundImage(settings.bgImage);
+
+            const bgIndex = presetBackgrounds.indexOf(settings.bgImage);
+            if (bgIndex !== -1) {
+              const bgElements = document.querySelectorAll(
+                "#preset-bg-images > div"
+              );
+              if (bgElements[bgIndex]) {
+                bgElements.forEach((el) => {
+                  el.classList.remove("border-primary");
+                  el.classList.add("border-transparent");
+                });
+                bgElements[bgIndex].classList.remove("border-transparent");
+                bgElements[bgIndex].classList.add("border-primary");
+              }
+            }
+          }
+
+          if (settings.bgOpacity) {
+            bgOpacitySlider.value = settings.bgOpacity;
+            applyBackgroundOpacity(settings.bgOpacity);
+          }
+
+          if (settings.fontSize) {
+            fontSizeSlider.value = settings.fontSize;
+            applyFontSize(settings.fontSize);
+          }
+
+          if (settings.taskSize) {
+            taskSizeSlider.value = settings.taskSize;
+            applyTaskSize(settings.taskSize);
+          }
+
+          if (settings.musicVolume !== undefined) {
+            musicVolumeSlider.value = settings.musicVolume * 100;
+            backgroundMusic.volume = settings.musicVolume;
+          }
+
+          if (settings.importedMusicName) {
+            importedMusicName.textContent = settings.importedMusicName;
+            importedMusicName.classList.remove("hidden");
+          }
+
+          if (settings.currentMusic) {
+            backgroundMusic.src = settings.currentMusic;
+            currentMusic = settings.currentMusic;
+
+            document.querySelectorAll(".play-music-btn").forEach((b) => {
+              if (b.getAttribute("data-music") === settings.currentMusic) {
+                b.innerHTML = '<i class="fa fa-pause text-primary"></i>';
+              } else {
+                b.innerHTML = '<i class="fa fa-play text-primary"></i>';
+              }
+            });
+          }
+
+          if (settings.customPlatforms) {
+            loadCustomPlatforms();
+          }
+
+          if (settings.notes) {
+          }
+
+          if (settings.noteBlocks) {
+          }
+        }
+      }
+
+      function addCustomPlatform(name, url, icon) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (!settings.customPlatforms) {
+          settings.customPlatforms = [];
+        }
+
+        settings.customPlatforms.push({
+          name: name,
+          url: url,
+          icon: icon,
+        });
+
+        localStorage.setItem(
+          `settings_${currentUser.username}`,
+          JSON.stringify(settings)
+        );
+
+        renderCustomPlatform(name, url, icon);
+      }
+
+      function renderCustomPlatform(name, url, icon) {
+        const customPlatformsContainer = document.getElementById(
+          "custom-platforms-container"
+        );
+
+        const platformEl = document.createElement("a");
+        platformEl.href = url;
+        platformEl.target = "_blank";
+        platformEl.rel = "noopener noreferrer";
+        platformEl.className =
+          "block bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 border border-gray-100";
+
+        platformEl.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
+              <i class="${icon} text-white text-lg"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-medium text-gray-900 truncate">${name}</h3>
+              <p class="text-sm text-gray-500 truncate">${url}</p>
+            </div>
+            <div class="text-gray-400">
+              <i class="fa fa-external-link-alt text-sm"></i>
+            </div>
+          </div>
+        `;
+
+        customPlatformsContainer.appendChild(platformEl);
+      }
+
+      function loadCustomPlatforms() {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (
+          settings.customPlatforms &&
+          Array.isArray(settings.customPlatforms)
+        ) {
+          settings.customPlatforms.forEach((platform) => {
+            renderCustomPlatform(platform.name, platform.url, platform.icon);
+          });
+        }
+      }
+
+      function addNote(title, content) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (!settings.notes) {
+          settings.notes = [];
+        }
+
+        const note = {
+          id: Date.now(),
+          title: title,
+          content: content,
+          date: new Date().toLocaleDateString("zh-CN"),
+          timestamp: new Date().getTime(),
+        };
+
+        settings.notes.unshift(note);
+
+        localStorage.setItem(
+          `settings_${currentUser.username}`,
+          JSON.stringify(settings)
+        );
+
+        renderNote(note);
+      }
+
+      function renderNote(note) {
+        const notesList = document.getElementById("notes-list");
+
+        const noteEl = document.createElement("div");
+        noteEl.className =
+          "bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 border border-gray-100 cursor-pointer note-item";
+        noteEl.setAttribute("data-note-id", note.id);
+        noteEl.draggable = true;
+
+        noteEl.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <h4 class="font-medium text-gray-900 truncate flex-1">${note.title}</h4>
+            <span class="text-xs text-gray-500 ml-2">${note.date}</span>
+          </div>
+          <p class="text-sm text-gray-600 line-clamp-3">${note.content}</p>
+        `;
+
+        noteEl.addEventListener("click", () => {
+          editNote(note.id, note.title, note.content);
+        });
+
+        noteEl.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("note-id", note.id);
+          e.dataTransfer.setData("note-title", note.title);
+          e.dataTransfer.setData("note-content", note.content);
+        });
+
+        notesList.insertBefore(noteEl, notesList.firstChild);
+      }
+
+      function editNote(id, currentTitle, currentContent) {
+        document.getElementById("note-title").value = currentTitle;
+        document.getElementById("note-content").value = currentContent;
+        document.getElementById("add-note-modal").classList.remove("hidden");
+        document.getElementById("note-title").focus();
+
+        document.getElementById("save-note").onclick = () => {
+          const title = document.getElementById("note-title").value.trim();
+          const content = document.getElementById("note-content").value.trim();
+
+          if (!title || !content) {
+            alert("请填写笔记标题和内容");
+            return;
+          }
+
+          updateNote(id, title, content);
+          document.getElementById("add-note-modal").classList.add("hidden");
+          document.getElementById("note-title").value = "";
+          document.getElementById("note-content").value = "";
+
+          document.getElementById("save-note").onclick = () => {
+            const title = document.getElementById("note-title").value.trim();
+            const content = document
+              .getElementById("note-content")
+              .value.trim();
+
+            if (!title || !content) {
+              alert("请填写笔记标题和内容");
+              return;
+            }
+
+            addNote(title, content);
+            document.getElementById("add-note-modal").classList.add("hidden");
+            document.getElementById("note-title").value = "";
+            document.getElementById("note-content").value = "";
+          };
+        };
+      }
+
+      function updateNote(id, title, content) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (settings.notes && Array.isArray(settings.notes)) {
+          const noteIndex = settings.notes.findIndex((note) => note.id === id);
+          if (noteIndex !== -1) {
+            settings.notes[noteIndex].title = title;
+            settings.notes[noteIndex].content = content;
+            settings.notes[noteIndex].date = new Date().toLocaleDateString(
+              "zh-CN"
+            );
+
+            localStorage.setItem(
+              `settings_${currentUser.username}`,
+              JSON.stringify(settings)
+            );
+
+            loadNotes();
+          }
+        }
+      }
+
+      function createNoteBlock(name) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (!settings.noteBlocks) {
+          settings.noteBlocks = [];
+        }
+
+        const noteBlock = {
+          id: Date.now(),
+          name: name,
+          notes: [],
+        };
+
+        settings.noteBlocks.push(noteBlock);
+
+        localStorage.setItem(
+          `settings_${currentUser.username}`,
+          JSON.stringify(settings)
+        );
+
+        renderNoteBlock(noteBlock);
+      }
+
+      function renderNoteBlock(noteBlock) {
+        const noteBlocksList = document.getElementById("note-blocks-list");
+
+        const blockEl = document.createElement("div");
+        blockEl.className =
+          "bg-white rounded-lg shadow-sm border border-gray-200 p-4 note-block";
+        blockEl.setAttribute("data-block-id", noteBlock.id);
+
+        blockEl.innerHTML = `
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-semibold text-gray-800">${noteBlock.name}</h4>
+            <button class="text-red-500 hover:text-red-700 text-sm" onclick="deleteNoteBlock(${
+              noteBlock.id
+            })">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+          <div class="note-block-content min-h-20 border-2 border-dashed border-gray-300 rounded-lg p-3" ondrop="handleNoteDrop(event)" ondragover="handleNoteDragOver(event)">
+            ${noteBlock.notes
+              .map(
+                (note) => `
+              <div class="bg-gray-50 rounded p-2 mb-2 cursor-pointer note-in-block" data-note-id="${note.id}">
+                <div class="flex justify-between items-start">
+                  <h5 class="font-medium text-sm text-gray-800 truncate flex-1">${note.title}</h5>
+                  <button class="text-red-500 hover:text-red-700 ml-2" onclick="removeNoteFromBlock(${noteBlock.id}, ${note.id})">
+                    <i class="fa fa-times text-xs"></i>
+                  </button>
+                </div>
+                <p class="text-xs text-gray-600 mt-1 line-clamp-2">${note.content}</p>
+              </div>
+            `
+              )
+              .join("")}
+            ${
+              noteBlock.notes.length === 0
+                ? '<p class="text-gray-500 text-sm text-center">拖拽笔记到这里</p>'
+                : ""
+            }
+          </div>
+        `;
+
+        noteBlocksList.appendChild(blockEl);
+      }
+
+      function handleNoteDrop(e) {
+        e.preventDefault();
+        const noteId = parseInt(e.dataTransfer.getData("note-id"));
+        const noteTitle = e.dataTransfer.getData("note-title");
+        const noteContent = e.dataTransfer.getData("note-content");
+        const blockId = parseInt(
+          e.target.closest(".note-block").getAttribute("data-block-id")
+        );
+
+        addNoteToBlock(blockId, {
+          id: noteId,
+          title: noteTitle,
+          content: noteContent,
+        });
+      }
+
+      function handleNoteDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      }
+
+      function addNoteToBlock(blockId, note) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (settings.noteBlocks && Array.isArray(settings.noteBlocks)) {
+          const blockIndex = settings.noteBlocks.findIndex(
+            (block) => block.id === blockId
+          );
+          if (blockIndex !== -1) {
+            const existingNoteIndex = settings.noteBlocks[
+              blockIndex
+            ].notes.findIndex((n) => n.id === note.id);
+            if (existingNoteIndex === -1) {
+              settings.noteBlocks[blockIndex].notes.push(note);
+
+              localStorage.setItem(
+                `settings_${currentUser.username}`,
+                JSON.stringify(settings)
+              );
+
+              loadNoteBlocks();
+            }
+          }
+        }
+      }
+
+      function removeNoteFromBlock(blockId, noteId) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (settings.noteBlocks && Array.isArray(settings.noteBlocks)) {
+          const blockIndex = settings.noteBlocks.findIndex(
+            (block) => block.id === blockId
+          );
+          if (blockIndex !== -1) {
+            settings.noteBlocks[blockIndex].notes = settings.noteBlocks[
+              blockIndex
+            ].notes.filter((note) => note.id !== noteId);
+
+            localStorage.setItem(
+              `settings_${currentUser.username}`,
+              JSON.stringify(settings)
+            );
+
+            loadNoteBlocks();
+          }
+        }
+      }
+
+      function deleteNoteBlock(blockId) {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        if (settings.noteBlocks && Array.isArray(settings.noteBlocks)) {
+          settings.noteBlocks = settings.noteBlocks.filter(
+            (block) => block.id !== blockId
+          );
+
+          localStorage.setItem(
+            `settings_${currentUser.username}`,
+            JSON.stringify(settings)
+          );
+
+          loadNoteBlocks();
+        }
+      }
+
+      function loadNotes() {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        const notesList = document.getElementById("notes-list");
+        notesList.innerHTML = "";
+
+        if (settings.notes && Array.isArray(settings.notes)) {
+          settings.notes.forEach((note) => {
+            renderNote(note);
+          });
+        }
+      }
+
+      function loadNoteBlocks() {
+        if (!currentUser) return;
+
+        const settings = JSON.parse(
+          localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+        );
+
+        const noteBlocksList = document.getElementById("note-blocks-list");
+        noteBlocksList.innerHTML = "";
+
+        if (settings.noteBlocks && Array.isArray(settings.noteBlocks)) {
+          settings.noteBlocks.forEach((block) => {
+            renderNoteBlock(block);
+          });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
