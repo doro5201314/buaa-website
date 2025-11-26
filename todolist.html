@@ -58,6 +58,10 @@
         font-family: "Inter", system-ui, sans-serif;
         overflow-x: hidden;
       }
+      
+      .hidden {
+        display: none !important;
+      }
 
       .login-gradient {
         background: linear-gradient(90deg, #ffb6c1, #e6e6fa);
@@ -355,9 +359,24 @@
         id="sidebar"
         class="sidebar-gradient w-64 flex-shrink-0 flex flex-col text-white shadow-lg z-10 transition-all duration-300"
       >
-        <div class="p-6 border-b border-white/20">
-          <h1 class="text-2xl font-bold text-shadow">TodoList</h1>
-          <p class="text-white/80 text-sm mt-1">管理您的任务与时间</p>
+        <div class="p-4 border-b border-white/20">
+          <h1 class="text-xl font-bold text-shadow">TodoList</h1>
+          <p class="text-white/80 text-xs mt-1">管理您的任务与时间</p>
+        </div>
+        <div id="user-profile" class="p-4 border-b border-white/20 cursor-pointer hover:bg-white/10 transition-custom">
+          <div class="flex items-center">
+            <img 
+              id="user-avatar" 
+              src="picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg" 
+              alt="用户头像" 
+              class="w-12 h-12 rounded-full border-2 border-white/50 object-cover"
+            >
+            <div class="ml-3 flex-1">
+              <h3 id="user-display-name" class="font-semibold text-white">用户名</h3>
+              <p class="text-white/70 text-xs">点击修改个人信息</p>
+            </div>
+            <i class="fa fa-chevron-right text-white/60 text-xs"></i>
+          </div>
         </div>
 
         <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
@@ -520,7 +539,115 @@
           </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-6" id="views-container">
+        <main class="flex-1 overflow-y-auto p-6">
+          <div id="views-container">
+          <div id="settings-view" class="view-content hidden">
+            <div class="bg-white/90 rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">个人设置</h2>
+                <button id="close-settings" class="p-2 rounded-full hover:bg-gray-200 transition-custom">
+                  <i class="fa fa-times text-gray-600"></i>
+                </button>
+              </div>
+              
+              <form id="user-settings-form">
+             
+                <div class="text-center mb-8">
+                  <div class="relative inline-block">
+                    <img 
+                      id="settings-avatar-preview" 
+                      src="picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg" 
+                      alt="用户头像" 
+                      class="w-32 h-32 rounded-full border-4 border-primary object-cover"
+                    >
+                    <div class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-custom">
+                      <i class="fa fa-camera"></i>
+                      <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                    </div>
+                  </div>
+                  <p class="text-gray-500 text-sm mt-2">点击相机图标更换头像</p>
+                </div>
+                
+           
+                <div class="space-y-6">
+                  <div>
+                    <label for="settings-username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input 
+                      type="text" 
+                      id="settings-username" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
+                      disabled
+                    >
+                    <p class="text-gray-500 text-xs mt-1">用户名不可修改</p>
+                  </div>
+                  
+                  <div>
+                    <label for="settings-display-name" class="block text-sm font-medium text-gray-700 mb-1">显示名称</label>
+                    <input 
+                      type="text" 
+                      id="settings-display-name" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
+                      placeholder="请输入显示名称"
+                    >
+                  </div>
+                </div>
+                
+                <hr class="my-8 border-gray-200">
+                
+
+                <div class="space-y-6">
+                  <h3 class="text-lg font-semibold text-gray-800">修改密码</h3>
+                  
+                  <div>
+                    <label for="current-password" class="block text-sm font-medium text-gray-700 mb-1">当前密码</label>
+                    <input 
+                      type="password" 
+                      id="current-password" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
+                      placeholder="请输入当前密码"
+                    >
+                  </div>
+                  
+                  <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">新密码</label>
+                    <input 
+                      type="password" 
+                      id="new-password" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
+                      placeholder="请输入新密码"
+                    >
+                  </div>
+                  
+                  <div>
+                    <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">确认新密码</label>
+                    <input 
+                      type="password" 
+                      id="confirm-password" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
+                      placeholder="请再次输入新密码"
+                    >
+                  </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-4">
+                  <button 
+                    type="button" 
+                    id="cancel-settings" 
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-custom"
+                  >
+                    取消
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom"
+                  >
+                    保存设置
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          
           <div id="day-view" class="view-content">
             <div class="bg-white/80 rounded-xl shadow-md p-5 mb-6">
               <div class="flex justify-between items-center mb-4">
@@ -1838,6 +1965,7 @@
       </div>
     </div>
 
+ 
     <div
       id="welcome-tip-modal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -1978,12 +2106,7 @@
         loadPresetBackgrounds();
         loadPresetMusics();
 
-        const savedUser = localStorage.getItem("currentUser");
-        if (savedUser) {
-          currentUser = JSON.parse(savedUser);
-          loadTasks();
-          showAppPage();
-        }
+     
 
         updateCurrentDate();
         setInterval(updateCurrentDate, 60000);
@@ -2515,23 +2638,52 @@
               document.getElementById("note-block-name").value = "";
             }
           });
-        document
-          .getElementById("close-welcome-tip")
-          .addEventListener("click", () => {
-            document
-              .getElementById("welcome-tip-modal")
-              .classList.add("hidden");
-          });
-
-        document
-          .getElementById("welcome-tip-modal")
-          .addEventListener("click", (e) => {
-            if (e.target === document.getElementById("welcome-tip-modal")) {
-              document
-                .getElementById("welcome-tip-modal")
-                .classList.add("hidden");
+       
+        try {
+          const closeWelcomeBtn = document.getElementById("close-welcome-tip");
+          if (closeWelcomeBtn) {
+         
+            closeWelcomeBtn.removeEventListener("click", handleCloseWelcomeTip);
+          
+            closeWelcomeBtn.addEventListener("click", handleCloseWelcomeTip);
+          }
+        } catch (error) {
+          console.error("Error adding event listener to close-welcome-tip:", error);
+        }
+        
+   
+        function handleCloseWelcomeTip(e) {
+          e.preventDefault();
+          e.stopPropagation(); 
+          try {
+            const welcomeModal = document.getElementById("welcome-tip-modal");
+            if (welcomeModal) {
+              welcomeModal.classList.add("hidden");
+              console.log("Welcome tip modal hidden");
             }
-          });
+          } catch (error) {
+            console.error("Error hiding welcome tip modal:", error);
+          }
+        }
+
+
+        try {
+          const welcomeModal = document.getElementById("welcome-tip-modal");
+          if (welcomeModal) {
+            welcomeModal.addEventListener("click", (e) => {
+              try {
+                if (e.target === welcomeModal) {
+                  welcomeModal.classList.add("hidden");
+                  console.log("Welcome tip modal hidden by clicking overlay");
+                }
+              } catch (error) {
+                console.error("Error handling click on welcome tip modal:", error);
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error adding event listener to welcome-tip-modal:", error);
+        }
       }
 
       function handleLogin(e) {
@@ -2608,7 +2760,7 @@
         appPage.classList.remove("hidden");
         viewTitleEl.textContent = "日视图";
 
-        document.getElementById("welcome-tip-modal").classList.remove("hidden");
+     
       }
 
       function switchView(view) {
@@ -4338,6 +4490,7 @@
         }
       }
 
+     
       function initSidebarToggle() {
         const sidebar = document.getElementById("sidebar");
         const toggleBtn = document.getElementById("toggle-sidebar");
@@ -4349,12 +4502,14 @@
           sidebarCollapsed = !sidebarCollapsed;
 
           if (sidebarCollapsed) {
+           
             sidebar.style.width = "0";
             sidebar.style.overflow = "hidden";
             toggleBtn.style.left = "0";
             toggleIcon.className = "fa fa-chevron-right";
           } else {
-            sidebar.style.width = "16rem";
+          
+            sidebar.style.width = "16rem"; 
             sidebar.style.overflow = "visible";
             toggleBtn.style.left = "16rem";
             toggleIcon.className = "fa fa-chevron-left";
@@ -4364,5 +4519,202 @@
 
       document.addEventListener("DOMContentLoaded", init);
     </script>
+  <script>
+  
+    function showView(viewId) {
+      
+      document.querySelectorAll('.view-content').forEach(view => {
+        view.classList.add('hidden');
+      });
+   
+      const targetView = document.getElementById(viewId);
+      if (targetView) {
+        targetView.classList.remove('hidden');
+      }
+      
+     
+      const sidebarTitle = document.querySelector('#sidebar h1');
+      if (sidebarTitle) {
+        if (viewId === 'settings-view') {
+          sidebarTitle.textContent = '个人设置';
+        } else {
+          sidebarTitle.textContent = 'TodoList';
+        }
+      }
+      
+    
+      const sidebarSubtitle = document.querySelector('#sidebar h1 + p');
+      if (sidebarSubtitle) {
+        if (viewId === 'settings-view') {
+          sidebarSubtitle.textContent = '管理您的个人信息';
+        } else {
+          sidebarSubtitle.textContent = '管理您的任务与时间';
+        }
+      }
+    }
+    
+
+    function initUserProfile() {
+      const userProfile = document.getElementById('user-profile');
+      const closeSettingsBtn = document.getElementById('close-settings');
+      const cancelSettingsBtn = document.getElementById('cancel-settings');
+      
+      
+      if (userProfile) {
+        userProfile.addEventListener('click', () => {
+          showView('settings-view');
+        
+          loadUserInfoToSettings();
+        });
+      }
+      
+     
+      if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', () => {
+          showView('day-view');
+        });
+      }
+      
+  
+      if (cancelSettingsBtn) {
+        cancelSettingsBtn.addEventListener('click', () => {
+          showView('day-view');
+        });
+      }
+    }
+    
+ 
+    function loadUserInfoToSettings() {
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{"username":"用户名账号","displayName":"用户名账号"}');
+      const displayNameInput = document.getElementById('settings-display-name');
+      const usernameInput = document.getElementById('settings-username');
+      const avatarPreview = document.getElementById('settings-avatar-preview');
+      
+      if (usernameInput) {
+        usernameInput.value = user.username || '用户名账号';
+      }
+      
+      if (displayNameInput) {
+        displayNameInput.value = user.displayName || user.username || '用户名账号';
+      }
+      
+      if (avatarPreview) {
+        avatarPreview.src = user.avatar || 'picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg';
+      }
+    }
+    
+  
+    function saveUserSettings(event) {
+      event.preventDefault();
+      
+      const displayNameInput = document.getElementById('settings-display-name');
+      const currentPasswordInput = document.getElementById('current-password');
+      const newPasswordInput = document.getElementById('new-password');
+      const confirmPasswordInput = document.getElementById('confirm-password');
+      
+     
+      let user = JSON.parse(localStorage.getItem('currentUser') || '{"username":"用户名账号","displayName":"用户名账号"}');
+      
+ 
+      if (displayNameInput && displayNameInput.value.trim()) {
+        user.displayName = displayNameInput.value.trim();
+      }
+      
+     
+      if (currentPasswordInput.value || newPasswordInput.value || confirmPasswordInput.value) {
+     
+        if (newPasswordInput.value !== confirmPasswordInput.value) {
+          alert('新密码和确认密码不一致！');
+          return;
+        }
+        
+        if (newPasswordInput.value.length < 6) {
+          alert('新密码长度至少为6位！');
+          return;
+        }
+        
+  
+        user.password = newPasswordInput.value; 
+      }
+      
+     
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+
+      updateSidebarUserInfo(user);
+      
+  
+      alert('设置已保存！');
+      
+     
+      showView('day-view');
+    }
+    
+
+    function updateSidebarUserInfo(user) {
+      const sidebarAvatar = document.getElementById('sidebar-avatar');
+      const sidebarUsername = document.getElementById('sidebar-username');
+      
+      if (sidebarAvatar) {
+        sidebarAvatar.src = user.avatar || 'picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg';
+      }
+      
+      if (sidebarUsername) {
+        sidebarUsername.textContent = user.displayName || user.username || '用户名账号';
+      }
+    }
+    
+  
+    function handleAvatarUpload() {
+      const avatarUpload = document.getElementById('avatar-upload');
+      const avatarPreview = document.getElementById('settings-avatar-preview');
+      const cameraIcon = document.querySelector('.fa-camera').parentElement;
+      
+      if (cameraIcon) {
+        cameraIcon.addEventListener('click', () => {
+          if (avatarUpload) {
+            avatarUpload.click();
+          }
+        });
+      }
+      
+      if (avatarUpload) {
+        avatarUpload.addEventListener('change', (event) => {
+          const file = event.target.files[0];
+          if (file) {
+       
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (avatarPreview) {
+                avatarPreview.src = e.target.result;
+              }
+           
+              let user = JSON.parse(localStorage.getItem('currentUser') || '{"username":"用户名账号","displayName":"用户名账号"}');
+              user.avatar = e.target.result; 
+              localStorage.setItem('currentUser', JSON.stringify(user));
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      initUserProfile();
+      
+      
+      const userSettingsForm = document.getElementById('user-settings-form');
+      if (userSettingsForm) {
+        userSettingsForm.addEventListener('submit', saveUserSettings);
+      }
+      
+      
+      handleAvatarUpload();
+      
+ 
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{"username":"用户名账号","displayName":"用户名账号"}');
+      updateSidebarUserInfo(user);
+    });
+  </script>
   </body>
 </html>
