@@ -352,7 +352,8 @@
 
     <div id="app-page" class="flex h-screen hidden">
       <div
-        class="sidebar-gradient w-64 flex-shrink-0 flex flex-col text-white shadow-lg z-10"
+        id="sidebar"
+        class="sidebar-gradient w-64 flex-shrink-0 flex flex-col text-white shadow-lg z-10 transition-all duration-300"
       >
         <div class="p-6 border-b border-white/20">
           <h1 class="text-2xl font-bold text-shadow">TodoList</h1>
@@ -481,8 +482,17 @@
           </button>
         </div>
       </div>
-
-      <div class="main-gradient flex-1 flex flex-col overflow-hidden">
+      <button
+        id="toggle-sidebar"
+        class="bg-white/30 hover:bg-white/50 text-white p-2 rounded-r-md z-20 flex items-center justify-center transition-all duration-300 shadow-md fixed top-1/2 transform -translate-y-1/2 left-64 hover:scale-110"
+        title="收起/展开侧边栏"
+      >
+        <i class="fa fa-chevron-left transition-transform duration-300"></i>
+      </button>
+      <div
+        id="main-content"
+        class="main-gradient flex-1 flex flex-col overflow-hidden transition-all duration-300"
+      >
         <header
           class="bg-white/70 bg-blur shadow-sm py-3 px-6 flex justify-between items-center"
         >
@@ -1828,7 +1838,6 @@
       </div>
     </div>
 
-    <!-- 进入提示弹窗 -->
     <div
       id="welcome-tip-modal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -1993,6 +2002,7 @@
         loadUserSettings();
 
         setupEventListeners();
+        initSidebarToggle();
       }
 
       function loadPresetBackgrounds() {
@@ -4326,6 +4336,30 @@
             renderNoteBlock(block);
           });
         }
+      }
+
+      function initSidebarToggle() {
+        const sidebar = document.getElementById("sidebar");
+        const toggleBtn = document.getElementById("toggle-sidebar");
+        const mainContent = document.getElementById("main-content");
+        const toggleIcon = toggleBtn.querySelector("i");
+        let sidebarCollapsed = false;
+
+        toggleBtn.addEventListener("click", function () {
+          sidebarCollapsed = !sidebarCollapsed;
+
+          if (sidebarCollapsed) {
+            sidebar.style.width = "0";
+            sidebar.style.overflow = "hidden";
+            toggleBtn.style.left = "0";
+            toggleIcon.className = "fa fa-chevron-right";
+          } else {
+            sidebar.style.width = "16rem";
+            sidebar.style.overflow = "visible";
+            toggleBtn.style.left = "16rem";
+            toggleIcon.className = "fa fa-chevron-left";
+          }
+        });
       }
 
       document.addEventListener("DOMContentLoaded", init);
