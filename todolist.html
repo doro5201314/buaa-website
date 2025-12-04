@@ -382,44 +382,53 @@
         <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
           <ul class="space-y-1">
             <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg bg-white/10 text-white font-medium"
-                data-view="day"
-              >
-                <i class="fa fa-calendar-day w-5 mr-3"></i>
-                <span>日视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="week"
-              >
-                <i class="fa fa-calendar-week w-5 mr-3"></i>
-                <span>周视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="month"
-              >
-                <i class="fa fa-calendar w-5 mr-3"></i>
-                <span>月视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="year"
-              >
-                <i class="fa fa-calendar-alt w-5 mr-3"></i>
-                <span>年视图</span>
-              </a>
+              <div class="relative">
+                <a
+                  href="#"
+                  class="nav-item flex items-center justify-between px-4 py-3 rounded-lg bg-white/10 text-white font-medium"
+                  id="calendar-views-toggle"
+                >
+                  <div class="flex items-center">
+                    <i class="fa fa-calendar w-5 mr-3"></i>
+                    <span id="calendar-views-text">日视图</span>
+                  </div>
+                  <i class="fa fa-chevron-down"></i>
+                </a>
+                <div class="absolute left-0 mt-1 w-full bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg hidden" id="calendar-views-dropdown">
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="day"
+                  >
+                    <i class="fa fa-calendar-day w-5 mr-3"></i>
+                    <span>日视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="week"
+                  >
+                    <i class="fa fa-calendar-week w-5 mr-3"></i>
+                    <span>周视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="month"
+                  >
+                    <i class="fa fa-calendar-month w-5 mr-3"></i>
+                    <span>月视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="year"
+                  >
+                    <i class="fa fa-calendar-alt w-5 mr-3"></i>
+                    <span>年视图</span>
+                  </a>
+                </div>
+              </div>
             </li>
             <li>
               <a
@@ -2139,6 +2148,12 @@
       const presetMusicContainer = document.getElementById("preset-music-list");
 
       function init() {
+        // 从localStorage加载当前用户信息
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+        }
+        
         loadPresetBackgrounds();
         loadPresetMusics();
         
@@ -2161,6 +2176,12 @@
         setupEventListeners();
         initSidebarToggle();
         initSearch(); // 初始化搜索功能
+        
+        // 检查用户登录状态，如果已登录则自动显示应用页面
+        if (currentUser) {
+          loadTasks();
+          showAppPage();
+        }
       }
 
       function loadPresetBackgrounds() {
@@ -2236,6 +2257,7 @@
         });
         logoutBtn.addEventListener("click", handleLogout);
 
+        // 导航项点击事件（包括下拉菜单外的项目）
         navItems.forEach((item) => {
           item.addEventListener("click", (e) => {
             e.preventDefault();
@@ -2250,15 +2272,54 @@
             item.classList.add("bg-white/10", "text-white", "font-medium");
           });
         });
+        
+        // 日历视图下拉菜单功能
+        const calendarToggle = document.getElementById('calendar-views-toggle');
+        const calendarDropdown = document.getElementById('calendar-views-dropdown');
+        
+        if (calendarToggle && calendarDropdown) {
+          // 点击切换按钮显示/隐藏下拉菜单并切换到日视图
+          calendarToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            calendarDropdown.classList.toggle('hidden');
+            // 如果当前不是日视图，切换到日视图
+            if (currentView !== 'day') {
+              switchView('day');
+            }
+          });
+          
+          // 下拉菜单项点击事件
+          const dropdownItems = calendarDropdown.querySelectorAll('.dropdown-item');
+          dropdownItems.forEach((item) => {
+            item.addEventListener('click', (e) => {
+              e.preventDefault();
+              const view = item.getAttribute('data-view');
+              switchView(view);
+              calendarDropdown.classList.add('hidden'); // 点击后隐藏下拉菜单
+            });
+          });
+          
+          // 点击页面其他地方关闭下拉菜单
+          document.addEventListener('click', (e) => {
+            if (!calendarToggle.contains(e.target) && !calendarDropdown.contains(e.target)) {
+              calendarDropdown.classList.add('hidden');
+            }
+          });
+        }
 
         addTaskBtn.addEventListener("click", () => {
           addTaskModal.classList.remove("hidden");
 
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-          document.getElementById("task-deadline").value = now
+          
+          // 设置截止时间默认值为当天23:59
+          const deadlineDate = new Date(now);
+          deadlineDate.setHours(23, 59, 0, 0);
+          document.getElementById("task-deadline").value = deadlineDate
             .toISOString()
             .slice(0, 16);
+            
           document.getElementById("task-start").value = now
             .toISOString()
             .slice(0, 16);
@@ -2780,6 +2841,7 @@
           localStorage.setItem("currentUser", JSON.stringify(user));
           loadTasks();
           showAppPage();
+          updateSidebarUserInfo(user);
           loginForm.reset();
         } else {
           alert("用户名或密码不正确");
@@ -2833,8 +2895,11 @@
         registerPage.classList.add("hidden");
         appPage.classList.remove("hidden");
         viewTitleEl.textContent = "日视图";
-
-     
+        
+        // 更新侧边栏用户信息和头像
+        if (currentUser) {
+          updateSidebarUserInfo(currentUser);
+        }
       }
 
       function switchView(view) {
@@ -2845,6 +2910,38 @@
         });
 
         document.getElementById(`${view}-view`).classList.remove("hidden");
+
+        // 更新导航栏激活状态
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((nav) => {
+          nav.classList.remove("bg-white/10", "text-white", "font-medium");
+          nav.classList.add("hover:bg-white/10", "text-white/90");
+        });
+        
+        // 特殊处理日历视图下拉菜单
+        const calendarViews = ['day', 'week', 'month', 'year'];
+        if (calendarViews.includes(view)) {
+          // 激活日历视图切换按钮
+          const calendarToggle = document.getElementById('calendar-views-toggle');
+          if (calendarToggle) {
+            calendarToggle.classList.remove("hover:bg-white/10", "text-white/90");
+            calendarToggle.classList.add("bg-white/10", "text-white", "font-medium");
+          }
+          
+          // 更新下拉菜单显示文本
+          const calendarViewsText = document.getElementById('calendar-views-text');
+          const viewTitles = { day: "日视图", week: "周视图", month: "月视图", year: "年视图" };
+          if (calendarViewsText && viewTitles[view]) {
+            calendarViewsText.textContent = viewTitles[view];
+          }
+        } else {
+          // 对于其他视图，找到对应的导航项并激活
+          const activeNavItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+          if (activeNavItem) {
+            activeNavItem.classList.remove("hover:bg-white/10", "text-white/90");
+            activeNavItem.classList.add("bg-white/10", "text-white", "font-medium");
+          }
+        }
 
         const viewTitles = {
           day: "日视图",
@@ -3357,8 +3454,12 @@
           if (task.isCompleted) return false;
 
           if (task.type === "deadline" && task.deadline) {
-            return task.deadline.split("T")[0] === today;
+            // 对于截止时间任务，只要截止日期大于等于当前日期，就应该显示
+            const taskDeadline = new Date(task.deadline);
+            const todayEnd = new Date(today + "T23:59:59");
+            return taskDeadline <= todayEnd;
           } else if (task.type === "timespan" && task.start) {
+            // 对于时间段任务，只显示开始时间在当天的任务
             return task.start.split("T")[0] === today;
           }
           return false;
@@ -3443,14 +3544,17 @@
 
           let taskDate;
           if (task.type === "deadline" && task.deadline) {
-            taskDate = task.deadline.split("T")[0];
+            // 对于截止时间任务，只要截止日期小于等于本周日，就应该显示
+            const taskDeadline = new Date(task.deadline);
+            const sundayEnd = new Date(weekDays[6] + "T23:59:59");
+            return taskDeadline <= sundayEnd;
           } else if (task.type === "timespan" && task.start) {
+            // 对于时间段任务，只显示开始时间在本周的任务
             taskDate = task.start.split("T")[0];
+            return weekDays.includes(taskDate);
           } else {
             return false;
           }
-
-          return weekDays.includes(taskDate);
         });
 
         weekTasks.sort((a, b) => {
@@ -3526,6 +3630,12 @@
             return false;
           }
 
+          // 对于截止时间任务，只要截止日期小于等于当月最后一天，就应该显示
+          if (task.type === "deadline") {
+            const lastDayEnd = new Date(year, month + 1, 0, 23, 59, 59);
+            return taskDate <= lastDayEnd;
+          }
+          // 对于时间段任务，只显示开始时间在当月的任务
           return (
             taskDate.getFullYear() === year && taskDate.getMonth() === month
           );
@@ -3672,6 +3782,12 @@
             return false;
           }
 
+          // 对于截止时间任务，只要截止日期小于等于当年最后一天，就应该显示
+          if (task.type === "deadline") {
+            const lastDayOfYear = new Date(year, 11, 31, 23, 59, 59);
+            return taskDate <= lastDayOfYear;
+          }
+          // 对于时间段任务，只显示开始时间在当年的任务
           return taskDate.getFullYear() === year;
         });
 
@@ -3815,6 +3931,40 @@
         });
       }
 
+      // 临期任务提醒功能
+      function checkUpcomingTasks() {
+        const now = new Date();
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+        const oneDayLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        
+        const upcomingTasks = tasks.filter(task => {
+          if (task.isCompleted) return false;
+          if (task.type !== "deadline" || !task.deadline) return false;
+          
+          const deadline = new Date(task.deadline);
+          return deadline > now && deadline <= oneDayLater;
+        });
+        
+        // 只提醒即将在1小时内截止的任务
+        const urgentTasks = upcomingTasks.filter(task => {
+          const deadline = new Date(task.deadline);
+          return deadline <= oneHourLater;
+        });
+        
+        if (urgentTasks.length > 0) {
+          let message = "有任务即将截止：\n";
+          urgentTasks.forEach(task => {
+            const deadline = new Date(task.deadline);
+            const timeStr = deadline.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+            message += `- ${task.name} (${timeStr})\n`;
+          });
+          alert(message);
+        }
+      }
+      
+      // 启动临期任务检查定时器
+      setInterval(checkUpcomingTasks, 10 * 60 * 1000); // 每10分钟检查一次
+      
       function togglePomodoro() {
         if (isPomodoroRunning) {
           clearInterval(pomodoroInterval);
@@ -4908,7 +5058,7 @@
     
 
     function updateSidebarUserInfo(user) {
-      const sidebarAvatar = document.getElementById('sidebar-avatar');
+      const sidebarAvatar = document.getElementById('user-avatar');
       const userDisplayName = document.getElementById('user-display-name');
       
       if (sidebarAvatar) {
