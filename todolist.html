@@ -19,6 +19,7 @@
               accent: "#E0C3FC",
               light: "#F0F7FF",
               dark: "#333333",
+              
               success: "#4CAF50",
               important: "#FF5252",
               completed: "#9E9E9E",
@@ -522,6 +523,17 @@
           </div>
 
           <div class="flex items-center space-x-4">
+            <div class="relative">
+              <input type="text" id="search-input" placeholder="搜索任务..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none">
+              <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <button
+              id="search-btn"
+              class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom flex items-center shadow-sm hover:shadow"
+            >
+              <i class="fa fa-search mr-2"></i>
+              <span>搜索</span>
+            </button>
             <button
               id="music-toggle"
               class="p-2 rounded-full hover:bg-gray-200 transition-custom text-gray-700"
@@ -539,6 +551,17 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-6">
+          <div id="search-results-container" class="hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5 mb-6">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fa fa-search text-primary mr-2"></i> 搜索结果
+                <span id="search-results-count" class="ml-2 text-sm text-gray-500"></span>
+              </h3>
+              <div id="search-results" class="space-y-3"></div>
+              <!-- 分页控件 -->
+              <div id="pagination" class="flex justify-center items-center mt-6 space-x-2"></div>
+            </div>
+          </div>
           <div id="views-container">
           <div id="settings-view" class="view-content hidden">
             <div class="bg-white/90 rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
@@ -2118,15 +2141,13 @@
       function init() {
         loadPresetBackgrounds();
         loadPresetMusics();
-
-     
-
+        
         updateCurrentDate();
         setInterval(updateCurrentDate, 60000);
-
+        
         updateBeijingTime();
         setInterval(updateBeijingTime, 1000);
-
+        
         renderDayView();
         renderWeekView();
         renderMonthView();
@@ -2134,11 +2155,12 @@
         renderImportantView();
         renderCompletedView();
         renderAllView();
-
+        
         loadUserSettings();
-
+        
         setupEventListeners();
         initSidebarToggle();
+        initSearch(); // 初始化搜索功能
       }
 
       function loadPresetBackgrounds() {
@@ -4472,6 +4494,176 @@
         }
       }
 
+      // 搜索功能相关代码
+      let searchResults = [];
+      let currentPage = 1;
+      const resultsPerPage = 10;
+      let searchTimeout = null;
+      
+      // 初始化搜索功能
+      function initSearch() {
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        
+        if (searchInput && searchBtn) {
+          // 搜索输入事件监听（使用防抖优化）
+          searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+              searchTasks(e.target.value);
+            }, 300); // 300ms 防抖延迟
+          });
+          
+          // 搜索按钮点击事件
+          searchBtn.addEventListener('click', () => {
+            const keyword = searchInput.value;
+            searchTasks(keyword);
+          });
+          
+          // 按下回车键触发搜索
+          searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              const keyword = e.target.value;
+              searchTasks(keyword);
+            }
+          });
+        }
+      }
+      
+      // 搜索函数
+      function searchTasks(keyword) {
+        if (!keyword.trim()) {
+          // 清空搜索结果
+          const container = document.getElementById('search-results-container');
+          container.classList.add('hidden');
+          return;
+        }
+        
+        const lowerKeyword = keyword.toLowerCase();
+        searchResults = tasks.filter(task => 
+          task.name.toLowerCase().includes(lowerKeyword) || 
+          (task.notes && task.notes.toLowerCase().includes(lowerKeyword))
+        );
+        
+        currentPage = 1;
+        renderSearchResults();
+      }
+      
+      // 渲染搜索结果
+      function renderSearchResults() {
+        const container = document.getElementById('search-results-container');
+        const resultsEl = document.getElementById('search-results');
+        const countEl = document.getElementById('search-results-count');
+        const paginationEl = document.getElementById('pagination');
+        
+        container.classList.remove('hidden');
+        countEl.textContent = `共 ${searchResults.length} 项结果`;
+        
+        if (searchResults.length === 0) {
+          resultsEl.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+              <i class="fa fa-search text-4xl mb-2 opacity-50"></i>
+              <p>未找到匹配的任务</p>
+              <p class="text-sm mt-1">请尝试其他关键词</p>
+            </div>
+          `;
+          paginationEl.innerHTML = '';
+          return;
+        }
+        
+        // 分页逻辑
+        const startIndex = (currentPage - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        const paginatedResults = searchResults.slice(startIndex, endIndex);
+        
+        // 渲染结果项
+        resultsEl.innerHTML = paginatedResults.map(task => {
+          const isCompleted = task.isCompleted || false;
+          return `
+            <div class="task-item bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-all duration-200">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-medium text-gray-800 ${isCompleted ? 'line-through text-gray-500' : ''}">${task.name}</h4>
+                  ${task.notes ? `<p class="text-sm text-gray-600 mt-1 ${isCompleted ? 'line-through text-gray-500' : ''}">${task.notes}</p>` : ''}
+                  <div class="text-xs text-gray-500 mt-2">
+                    ${task.type === 'deadline' ? `截止时间: ${formatDate(task.deadline)}` : `时间段: ${formatDate(task.start)} - ${formatDate(task.end)}`}
+                    ${task.isImportant ? ' <span class="text-red-500">(重要)</span>' : ''}
+                    ${isCompleted ? ' <span class="text-green-500">(已完成)</span>' : ''}
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button onclick="editTask('${task.id}')" class="text-primary hover:text-primary/80 p-1 rounded-full hover:bg-primary/10 transition-colors">
+                    <i class="fa fa-pencil"></i>
+                  </button>
+                  <button onclick="toggleTaskCompletion('${task.id}')" class="${isCompleted ? 'text-gray-400' : 'text-green-500 hover:text-green-600'} p-1 rounded-full hover:bg-green-10 transition-colors">
+                    <i class="fa fa-check"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        renderPagination();
+      }
+      
+      // 渲染分页控件
+      function renderPagination() {
+        const paginationEl = document.getElementById('pagination');
+        const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+        
+        if (totalPages <= 1) {
+          paginationEl.innerHTML = '';
+          return;
+        }
+        
+        let paginationHTML = `
+          <button onclick="changePage(${currentPage - 1})" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+            <i class="fa fa-chevron-left"></i>
+          </button>
+        `;
+        
+        // 页码按钮
+        for (let i = 1; i <= totalPages; i++) {
+          paginationHTML += `
+            <button onclick="changePage(${i})" class="px-3 py-1 rounded-lg transition-colors ${currentPage === i ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200'}">
+              ${i}
+            </button>
+          `;
+        }
+        
+        paginationHTML += `
+          <button onclick="changePage(${currentPage + 1})" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+            <i class="fa fa-chevron-right"></i>
+          </button>
+        `;
+        
+        paginationEl.innerHTML = paginationHTML;
+      }
+      
+      // 页码切换
+      function changePage(page) {
+        const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          renderSearchResults();
+        }
+      }
+      
+      // 格式化日期函数
+      function formatDate(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        return date.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
       function removeNoteFromBlock(blockId, noteId) {
         if (!currentUser) return;
 
