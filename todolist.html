@@ -140,6 +140,21 @@
           transform: rotate(360deg);
         }
       }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 20px solid #ff5722; /* 箭头颜色 */
+        margin-right: 10px;
+      }
+
+      .tutorial-description {
+        font-size: 1rem;
+        color: #333;
+        margin-left: 10px;
+      }
     </style>
   </head>
   <body class="h-screen flex flex-col">
@@ -484,6 +499,16 @@
               <a
                 href="#"
                 class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                data-view="tutorial"
+              >
+                <i class="fa fa-graduation-cap w-5 mr-3"></i>
+                <span>教程</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
                 data-view="all"
               >
                 <i class="fa fa-tasks w-5 mr-3"></i>
@@ -678,7 +703,285 @@
               </form>
             </div>
           </div>
-          
+          <!-- 在所有视图后面添加教程视图 -->
+          <div id="tutorial-view" class="view-content hidden">
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                  <i class="fa fa-graduation-cap text-primary mr-2"></i> 使用教程
+                </h3>
+                <div class="flex items-center space-x-3">
+                  <button
+                    id="reset-tutorial"
+                    class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center"
+                  >
+                    <i class="fa fa-refresh mr-1"></i> 重置教程进度
+                  </button>
+                </div>
+              </div>
+
+              <div class="tutorial-container">
+                <!-- 教程步骤将在这里动态生成 -->
+                <div id="tutorial-steps" class="space-y-8">
+                  <!-- 步骤1 -->
+                  <div class="tutorial-step bg-white rounded-xl shadow-lg p-6 border border-gray-100" data-step="1">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-4">
+                        <span class="font-bold">1</span>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">任务创建</h4>
+                        <p class="text-gray-600 mb-4">学习如何创建和管理您的日常任务</p>
+                        
+                        <div class="tutorial-content">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="tutorial-image">
+                              <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                                <div class="text-center">
+                                  <i class="fa fa-plus-circle text-4xl text-gray-400 mb-3"></i>
+                                  <p class="text-gray-500">点击"添加任务"按钮</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="tutorial-description">
+                              <ul class="space-y-3">
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>点击右上角的"添加任务"按钮打开任务创建表单</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>填写任务名称、类型和时间信息</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>重要任务可以勾选"标记为重要任务"</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>点击保存即可创建任务</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <div class="arrow"></div>
+                            <div class="tutorial-description text-sm bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+                              提示：您可以创建两种类型的任务 - 截止时间任务和时间段任务。截止时间任务适合有明确截止时间的任务，时间段任务适合需要在特定时间段完成的任务。
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+                          <button class="step-prev-btn px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom hidden">
+                            <i class="fa fa-chevron-left mr-2"></i> 上一步
+                          </button>
+                          <div class="ml-auto">
+                            <button class="step-next-btn px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                              下一步 <i class="fa fa-chevron-right ml-2"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 步骤2 -->
+                  <div class="tutorial-step bg-white rounded-xl shadow-lg p-6 border border-gray-100 hidden" data-step="2">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-4">
+                        <span class="font-bold">2</span>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">日历视图</h4>
+                        <p class="text-gray-600 mb-4">学习如何使用不同的日历视图来查看任务</p>
+                        
+                        <div class="tutorial-content">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="tutorial-image">
+                              <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                                <div class="text-center">
+                                  <i class="fa fa-calendar text-4xl text-gray-400 mb-3"></i>
+                                  <p class="text-gray-500">日历视图切换</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="tutorial-description">
+                              <ul class="space-y-3">
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>点击侧边栏的"日历视图"可以展开视图选项</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>日视图：查看当天任务，按上午、中午、晚上分组</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>周视图：查看本周任务，按天分组显示</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>月视图：查看本月任务，日历式展示</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <div class="arrow"></div>
+                            <div class="tutorial-description text-sm bg-blue-50 p-3 rounded-lg border border-blue-100">
+                              提示：在日历视图中，您可以点击任意日期快速切换到该日期的日视图，方便您查看和管理该日期的任务。
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+                          <button class="step-prev-btn px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom">
+                            <i class="fa fa-chevron-left mr-2"></i> 上一步
+                          </button>
+                          <div class="ml-auto">
+                            <button class="step-next-btn px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                              下一步 <i class="fa fa-chevron-right ml-2"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 步骤3 -->
+                  <div class="tutorial-step bg-white rounded-xl shadow-lg p-6 border border-gray-100 hidden" data-step="3">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-4">
+                        <span class="font-bold">3</span>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">任务管理</h4>
+                        <p class="text-gray-600 mb-4">学习如何编辑、复制和删除任务</p>
+                        
+                        <div class="tutorial-content">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="tutorial-image">
+                              <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                                <div class="text-center">
+                                  <i class="fa fa-tasks text-4xl text-gray-400 mb-3"></i>
+                                  <p class="text-gray-500">任务操作按钮</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="tutorial-description">
+                              <ul class="space-y-3">
+                                <li class="flex items-start">
+                                  <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                  <span>√ 标记：点击圆圈标记任务为完成/未完成</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-edit text-blue-500 mt-1 mr-2"></i>
+                                  <span>编辑：点击铅笔图标编辑任务信息</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-copy text-purple-500 mt-1 mr-2"></i>
+                                  <span>复制：点击复制图标复制任务到其他时间</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-trash text-red-500 mt-1 mr-2"></i>
+                                  <span>删除：点击垃圾桶图标删除任务</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <div class="arrow"></div>
+                            <div class="tutorial-description text-sm bg-green-50 p-3 rounded-lg border border-green-100">
+                              提示：当您需要重复类似的任务时，可以使用复制功能快速创建新任务，然后调整时间即可。
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+                          <button class="step-prev-btn px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom">
+                            <i class="fa fa-chevron-left mr-2"></i> 上一步
+                          </button>
+                          <div class="ml-auto">
+                            <button class="step-next-btn px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-custom">
+                              下一步 <i class="fa fa-chevron-right ml-2"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 步骤4 -->
+                  <div class="tutorial-step bg-white rounded-xl shadow-lg p-6 border border-gray-100 hidden" data-step="4">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-4">
+                        <span class="font-bold">4</span>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">高级功能</h4>
+                        <p class="text-gray-600 mb-4">学习使用番茄钟、作业平台和笔记功能</p>
+                        
+                        <div class="tutorial-content">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="tutorial-image">
+                              <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                                <div class="text-center">
+                                  <i class="fa fa-clock-o text-4xl text-gray-400 mb-3"></i>
+                                  <p class="text-gray-500">番茄钟功能</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="tutorial-description">
+                              <ul class="space-y-3">
+                                <li class="flex items-start">
+                                  <i class="fa fa-clock-o text-orange-500 mt-1 mr-2"></i>
+                                  <span>番茄钟：使用番茄工作法提高专注力</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-book text-blue-500 mt-1 mr-2"></i>
+                                  <span>作业平台：快速访问常用学习平台</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-sticky-note text-green-500 mt-1 mr-2"></i>
+                                  <span>心得笔记：记录学习心得和笔记</span>
+                                </li>
+                                <li class="flex items-start">
+                                  <i class="fa fa-music text-purple-500 mt-1 mr-2"></i>
+                                  <span>背景音乐：播放音乐提高学习效率</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div class="flex items-center">
+                            <div class="arrow"></div>
+                            <div class="tutorial-description text-sm bg-purple-50 p-3 rounded-lg border border-purple-100">
+                              提示：番茄钟功能支持专注模式（25分钟）、短休（5分钟）和长休（15分钟），可以帮助您合理安排学习和休息时间。
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+                          <button class="step-prev-btn px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-custom">
+                            <i class="fa fa-chevron-left mr-2"></i> 上一步
+                          </button>
+                          <div class="ml-auto">
+                            <button class="step-complete-btn px-4 py-2 bg-success text-white rounded-lg hover:bg-success/90 transition-custom">
+                              完成教程 <i class="fa fa-check ml-2"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div id="day-view" class="view-content">
             <div class="bg-white/80 rounded-xl shadow-md p-5 mb-6">
               <div class="flex justify-between items-center mb-4">
@@ -2068,7 +2371,6 @@
         </div>
       </div>
     </div>
-
     <script>
       let currentUser = null;
       let tasks = [];
@@ -2256,7 +2558,44 @@
           loginPage.classList.remove("hidden");
         });
         logoutBtn.addEventListener("click", handleLogout);
+        // 教程相关事件
+        document.getElementById('reset-tutorial')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('确定要重置教程进度吗？这将重新开始所有教程步骤。')) {
+                resetTutorialProgress();
+            }
+        });
 
+        // 教程步骤按钮事件委托（简化版本）
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            
+            // 下一步按钮
+            if (target.closest('.step-next-btn')) {
+                e.preventDefault();
+                const currentStep = getCurrentStep();
+                if (currentStep < 4) {
+                    showStep(currentStep + 1);
+                    saveTutorialProgress(currentStep + 1);
+                }
+            }
+            
+            // 上一步按钮
+            if (target.closest('.step-prev-btn')) {
+                e.preventDefault();
+                const currentStep = getCurrentStep();
+                if (currentStep > 1) {
+                    showStep(currentStep - 1);
+                    saveTutorialProgress(currentStep - 1);
+                }
+            }
+            
+            // 完成教程按钮
+            if (target.closest('.step-complete-btn')) {
+                e.preventDefault();
+                completeTutorial();
+            }
+        });
         // 导航项点击事件（包括下拉菜单外的项目）
         navItems.forEach((item) => {
           item.addEventListener("click", (e) => {
@@ -2954,6 +3293,7 @@
           homework: "作业平台",
           notes: "心得笔记",
           all: "总任务",
+          tutorial: "使用教程", 
         };
         viewTitleEl.textContent = viewTitles[view] || "任务管理";
 
@@ -2985,9 +3325,128 @@
           case "all":
             renderAllView();
             break;
+          case "tutorial": // 添加教程视图处理
+            initTutorial();
+            break;
         }
       }
 
+      // 初始化教程功能
+      function initTutorial() {
+          // 加载教程进度
+          loadTutorialProgress();
+          
+          // 显示当前步骤
+          const currentStep = getCurrentStep();
+          showStep(currentStep);
+      }
+
+
+      // 获取当前教程步骤
+      function getCurrentStep() {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+          return settings.tutorialStep || 1;
+        }
+        return 1;
+      }
+
+      // 显示特定步骤
+      function showStep(stepNumber) {
+        // 隐藏所有步骤
+        document.querySelectorAll('.tutorial-step').forEach(step => {
+          step.classList.add('hidden');
+        });
+        
+        // 显示当前步骤
+        const currentStep = document.querySelector(`.tutorial-step[data-step="${stepNumber}"]`);
+        if (currentStep) {
+          currentStep.classList.remove('hidden');
+          
+          // 更新按钮状态
+          const prevBtn = currentStep.querySelector('.step-prev-btn');
+          const nextBtn = currentStep.querySelector('.step-next-btn');
+          
+          if (prevBtn) {
+            if (stepNumber === 1) {
+              prevBtn.classList.add('hidden');
+            } else {
+              prevBtn.classList.remove('hidden');
+            }
+          }
+          
+          if (nextBtn) {
+            if (stepNumber === 4) {
+              nextBtn.classList.add('hidden');
+            } else {
+              nextBtn.classList.remove('hidden');
+            }
+          }
+        }
+      }
+
+      // 保存教程进度
+      function saveTutorialProgress(step) {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+          settings.tutorialStep = step;
+          localStorage.setItem(
+            `settings_${currentUser.username}`,
+            JSON.stringify(settings)
+          );
+        }
+      }
+
+      // 加载教程进度
+      function loadTutorialProgress() {
+        const currentStep = getCurrentStep();
+        showStep(currentStep);
+      }
+
+      // 重置教程进度
+      function resetTutorialProgress() {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+          settings.tutorialStep = 1;
+          localStorage.setItem(
+            `settings_${currentUser.username}`,
+            JSON.stringify(settings)
+          );
+          
+          // 重新显示第一步
+          showStep(1);
+          
+          // 显示提示
+          alert('教程进度已重置，请重新开始学习！');
+        }
+      }
+
+      // 完成教程
+      function completeTutorial() {
+        if (currentUser) {
+          const settings = JSON.parse(
+            localStorage.getItem(`settings_${currentUser.username}`) || "{}"
+          );
+          settings.tutorialCompleted = true;
+          settings.tutorialStep = 1; // 重置为第一步，方便重新查看
+          localStorage.setItem(
+            `settings_${currentUser.username}`,
+            JSON.stringify(settings)
+          );
+          
+          // 显示完成消息
+          alert('恭喜您完成教程！现在您可以开始使用TodoList管理系统了。\n\n如有任何问题，可以随时返回教程查看。');
+          
+          // 切换到日视图
+          switchView('day');
+        }
+      }
       function updateCurrentDate() {
         const options = {
           year: "numeric",
@@ -4313,6 +4772,15 @@
 
           if (settings.noteBlocks) {
           }
+          // 加载教程进度
+          if (settings.tutorialStep) {
+            // 教程进度已保存，不需要额外操作
+          }
+          
+          if (settings.tutorialCompleted) {
+            // 教程已完成，不需要额外操作
+          }
+
         }
       }
 
@@ -5124,5 +5592,6 @@
       updateSidebarUserInfo(user);
     });
   </script>
+
   </body>
 </html>
