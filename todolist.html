@@ -381,45 +381,50 @@
 
         <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
           <ul class="space-y-1">
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg bg-white/10 text-white font-medium"
-                data-view="day"
+            <li class="relative">
+              <div
+                class="nav-item flex items-center justify-between px-4 py-3 rounded-lg bg-white/10 text-white font-medium cursor-pointer"
+                id="view-switcher"
               >
-                <i class="fa fa-calendar-day w-5 mr-3"></i>
-                <span>日视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="week"
-              >
-                <i class="fa fa-calendar-week w-5 mr-3"></i>
-                <span>周视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="month"
-              >
-                <i class="fa fa-calendar w-5 mr-3"></i>
-                <span>月视图</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
-                data-view="year"
-              >
-                <i class="fa fa-calendar-alt w-5 mr-3"></i>
-                <span>年视图</span>
-              </a>
+                <div class="flex items-center">
+                  <i class="fa fa-calendar w-5 mr-3"></i>
+                  <span id="view-switcher-text">月视图</span>
+                </div>
+                <i class="fa fa-chevron-down text-white/80 text-xs"></i>
+              </div>
+              <div id="view-dropdown" class="hidden absolute left-0 mt-1 w-full bg-white/90 rounded-lg shadow-lg z-10 backdrop-blur-sm">
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="day"
+                >
+                  <i class="fa fa-calendar-day w-5 mr-3 text-primary"></i>
+                  <span>日视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="week"
+                >
+                  <i class="fa fa-calendar-week w-5 mr-3 text-primary"></i>
+                  <span>周视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="month"
+                >
+                  <span class="pl-8">月视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="year"
+                >
+                  <i class="fa fa-calendar-alt w-5 mr-3 text-primary"></i>
+                  <span>年视图</span>
+                </a>
+              </div>
             </li>
             <li>
               <a
@@ -691,42 +696,16 @@
                 </button>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
-                <h3
-                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
-                >
-                  <i class="fa fa-sun-o text-yellow-500 mr-2"></i> 上午
-                </h3>
-                <div
-                  id="morning-tasks"
-                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
-                ></div>
-              </div>
-
-              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
-                <h3
-                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
-                >
-                  <i class="fa fa-sun text-orange-500 mr-2"></i> 中午
-                </h3>
-                <div
-                  id="noon-tasks"
-                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
-                ></div>
-              </div>
-
-              <div class="bg-white/80 rounded-xl shadow-md p-5 flex-1">
-                <h3
-                  class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
-                >
-                  <i class="fa fa-moon-o text-indigo-500 mr-2"></i> 下午/晚上
-                </h3>
-                <div
-                  id="evening-tasks"
-                  class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
-                ></div>
-              </div>
+            <div class="bg-white/80 rounded-xl shadow-md p-5">
+              <h3
+                class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+              >
+                <i class="fa fa-clock-o text-primary mr-2"></i> 今日任务
+              </h3>
+              <div
+                id="timeline-tasks"
+                class="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide"
+              ></div>
             </div>
           </div>
 
@@ -2236,13 +2215,55 @@
         });
         logoutBtn.addEventListener("click", handleLogout);
 
-        navItems.forEach((item) => {
+        // 视图切换器功能
+        const viewSwitcher = document.getElementById("view-switcher");
+        const viewDropdown = document.getElementById("view-dropdown");
+        const viewSwitcherText = document.getElementById("view-switcher-text");
+        const dropdownItems = document.querySelectorAll(".dropdown-item");
+
+        // 切换下拉菜单显示/隐藏
+        viewSwitcher.addEventListener("click", (e) => {
+          e.preventDefault();
+          viewDropdown.classList.toggle("hidden");
+        });
+
+        // 处理下拉菜单项点击
+        dropdownItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const view = item.getAttribute("data-view");
+            switchView(view);
+            
+            // 更新切换器文本
+            const viewTitles = {
+              day: "日视图",
+              week: "周视图",
+              month: "月视图",
+              year: "年视图"
+            };
+            viewSwitcherText.textContent = viewTitles[view] || "月视图";
+            
+            // 关闭下拉菜单
+            viewDropdown.classList.add("hidden");
+          });
+        });
+
+        // 点击外部关闭下拉菜单
+        document.addEventListener("click", (e) => {
+          if (!viewSwitcher.contains(e.target) && !viewDropdown.contains(e.target)) {
+            viewDropdown.classList.add("hidden");
+          }
+        });
+
+        // 处理其他导航项
+        const otherNavItems = document.querySelectorAll(".nav-item:not(#view-switcher)");
+        otherNavItems.forEach((item) => {
           item.addEventListener("click", (e) => {
             e.preventDefault();
             const view = item.getAttribute("data-view");
             switchView(view);
 
-            navItems.forEach((nav) => {
+            otherNavItems.forEach((nav) => {
               nav.classList.remove("bg-white/10", "text-white", "font-medium");
               nav.classList.add("hover:bg-white/10", "text-white/90");
             });
@@ -2255,19 +2276,30 @@
           addTaskModal.classList.remove("hidden");
 
           const now = new Date();
-          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-          document.getElementById("task-deadline").value = now
-            .toISOString()
-            .slice(0, 16);
-          document.getElementById("task-start").value = now
-            .toISOString()
-            .slice(0, 16);
+          
+          // 设置开始时间为当前时间（本地时间格式）
+          const startYear = now.getFullYear();
+          const startMonth = String(now.getMonth() + 1).padStart(2, '0');
+          const startDay = String(now.getDate()).padStart(2, '0');
+          const startHour = String(now.getHours()).padStart(2, '0');
+          const startMinute = String(now.getMinutes()).padStart(2, '0');
+          document.getElementById("task-start").value = `${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}`;
 
+          // 设置结束时间为1小时后（本地时间格式）
           const later = new Date(now);
           later.setHours(later.getHours() + 1);
-          document.getElementById("task-end").value = later
-            .toISOString()
-            .slice(0, 16);
+          const endYear = later.getFullYear();
+          const endMonth = String(later.getMonth() + 1).padStart(2, '0');
+          const endDay = String(later.getDate()).padStart(2, '0');
+          const endHour = String(later.getHours()).padStart(2, '0');
+          const endMinute = String(later.getMinutes()).padStart(2, '0');
+          document.getElementById("task-end").value = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
+            
+          // 设置截止时间为当日23:59（本地时间格式）
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          document.getElementById("task-deadline").value = `${year}-${month}-${day}T23:59`;
         });
 
         closeModalBtn.addEventListener("click", () => {
@@ -2758,6 +2790,14 @@
             }
           }
         });
+        
+        // 页面加载时设置截止时间默认值为当日23:59
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        // 直接构造本地时间格式的字符串，避免UTC转换问题
+        document.getElementById("task-deadline").value = `${year}-${month}-${day}T23:59`;
       }
 
       function handleLogin(e) {
@@ -3240,10 +3280,27 @@
       }
 
       function createTaskElement(task) {
+        // 检查是否为临期任务（24小时内到期）
+        let isUrgent = false;
+        if (task.type === "deadline" && task.deadline && !task.isCompleted) {
+          const now = new Date();
+          const deadline = new Date(task.deadline);
+          const timeDiff = deadline - now;
+          // 24小时内到期且未过期
+          isUrgent = timeDiff > 0 && timeDiff <= 24 * 60 * 60 * 1000;
+        }
+        
         const taskEl = document.createElement("div");
-        taskEl.className = `task-item bg-white rounded-lg shadow-sm p-3 border-l-4 ${
+        let taskClass = `task-item bg-white rounded-lg shadow-sm p-3 border-l-4 ${
           task.isImportant ? "border-l-important" : "border-l-primary"
         } ${task.isCompleted ? "opacity-60" : ""}`;
+        
+        // 为临期任务添加特殊样式
+        if (isUrgent) {
+          taskClass += " border-l-red-500 bg-red-50 hover:bg-red-100 transition-all duration-300";
+        }
+        
+        taskEl.className = taskClass;
 
         const taskHeight =
           localStorage.getItem(`taskSize_${currentUser?.username}`) || 56;
@@ -3257,6 +3314,10 @@
         if (task.type === "deadline" && task.deadline) {
           const date = new Date(task.deadline);
           timeText = `截止: ${date.toLocaleString("zh-CN")}`;
+          // 为临期任务添加醒目提示
+          if (isUrgent) {
+            timeText = `<i class="fa fa-exclamation-triangle text-red-500 mr-1"></i> <span class="font-bold text-red-600">${timeText}</span>`;
+          }
         } else if (task.type === "timespan" && task.start && task.end) {
           const startDate = new Date(task.start);
           const endDate = new Date(task.end);
@@ -3270,8 +3331,10 @@
           <div class="flex-1 mr-2">
             <h4 class="font-medium ${
               task.isCompleted ? "text-completed line-through" : ""
+            } ${
+              isUrgent ? "text-red-700" : ""
             }">${task.name}</h4>
-            <p class="text-xs text-gray-500 mt-1">${timeText}</p>
+            <p class="text-xs mt-1" style="line-height: 1.4;">${timeText}</p>
             ${
               task.notes
                 ? `<p class="text-sm text-gray-600 mt-1">${task.notes}</p>`
@@ -3329,9 +3392,7 @@
       }
 
       function renderDayView() {
-        const morningTasksEl = document.getElementById("morning-tasks");
-        const noonTasksEl = document.getElementById("noon-tasks");
-        const eveningTasksEl = document.getElementById("evening-tasks");
+        const timelineTasksEl = document.getElementById("timeline-tasks");
 
         const currentDayEl = document.getElementById("current-day");
         if (currentDayEl) {
@@ -3347,19 +3408,30 @@
           );
         }
 
-        morningTasksEl.innerHTML = "";
-        noonTasksEl.innerHTML = "";
-        eveningTasksEl.innerHTML = "";
+        timelineTasksEl.innerHTML = "";
 
         const today = currentDate.toISOString().split("T")[0];
 
         const todayTasks = tasks.filter((task) => {
           if (task.isCompleted) return false;
 
+          const todayDate = new Date(currentDate);
+          todayDate.setHours(0, 0, 0, 0);
+          
           if (task.type === "deadline" && task.deadline) {
-            return task.deadline.split("T")[0] === today;
-          } else if (task.type === "timespan" && task.start) {
-            return task.start.split("T")[0] === today;
+            // 截止时间任务：显示所有未过期且截止时间在今天或之前的任务
+            const taskDeadline = new Date(task.deadline);
+            return taskDeadline >= todayDate;
+          } else if (task.type === "timespan" && task.start && task.end) {
+            // 时间段任务：显示今天开始或今天正在进行的任务
+            const taskStart = new Date(task.start);
+            const taskEnd = new Date(task.end);
+            const todayEnd = new Date(currentDate);
+            todayEnd.setHours(23, 59, 59, 999);
+            
+            return (taskStart >= todayDate && taskStart <= todayEnd) || 
+                   (taskEnd >= todayDate && taskEnd <= todayEnd) ||
+                   (taskStart <= todayDate && taskEnd >= todayEnd);
           }
           return false;
         });
@@ -3370,35 +3442,16 @@
           return new Date(timeA) - new Date(timeB);
         });
 
+        if (todayTasks.length === 0) {
+          timelineTasksEl.innerHTML =
+            '<p class="text-gray-400 text-center py-4">今日没有任务</p>';
+          return;
+        }
+
         todayTasks.forEach((task) => {
-          const timeStr = task.type === "deadline" ? task.deadline : task.start;
-          const hour = new Date(timeStr).getHours();
-
           const taskEl = createTaskElement(task);
-
-          if (hour < 12) {
-            morningTasksEl.appendChild(taskEl);
-          } else if (hour < 14) {
-            noonTasksEl.appendChild(taskEl);
-          } else {
-            eveningTasksEl.appendChild(taskEl);
-          }
+          timelineTasksEl.appendChild(taskEl);
         });
-
-        if (morningTasksEl.children.length === 0) {
-          morningTasksEl.innerHTML =
-            '<p class="text-gray-400 text-center py-4">上午没有任务</p>';
-        }
-
-        if (noonTasksEl.children.length === 0) {
-          noonTasksEl.innerHTML =
-            '<p class="text-gray-400 text-center py-4">中午没有任务</p>';
-        }
-
-        if (eveningTasksEl.children.length === 0) {
-          eveningTasksEl.innerHTML =
-            '<p class="text-gray-400 text-center py-4">下午/晚上没有任务</p>';
-        }
       }
 
       function renderWeekView() {
