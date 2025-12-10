@@ -1554,7 +1554,7 @@
                 <!-- 已完成任务隐藏开关 -->
                 <div class="flex items-center space-x-2">
                   <span class="text-sm text-gray-600">隐藏已完成任务</span>
-                  <div class="relative inline-block w-12 h-6">
+                  <div class="relative inline-block w-12 h-6 cursor-pointer" id="hide-completed-container">
                     <input 
                       type="checkbox" 
                       id="hide-completed-tasks" 
@@ -2645,6 +2645,14 @@
                 renderDayView();
             }
           });
+          const hideCompletedContainer = document.getElementById('hide-completed-container');
+          if (hideCompletedContainer) {
+            hideCompletedContainer.addEventListener('click', () => {
+              hideCompletedToggle.checked = !hideCompletedToggle.checked;
+              // 触发change事件，确保状态更新和视图重新渲染
+              hideCompletedToggle.dispatchEvent(new Event('change'));
+            });
+          }
         }
         
         // 快捷键事件：按住Alt键临时显示所有任务
