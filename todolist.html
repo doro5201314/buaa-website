@@ -396,6 +396,55 @@
 
         <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
           <ul class="space-y-1">
+<<<<<<< HEAD
+            <li>
+              <div class="relative">
+                <a
+                  href="#"
+                  class="nav-item flex items-center justify-between px-4 py-3 rounded-lg bg-white/10 text-white font-medium"
+                  id="calendar-views-toggle"
+                >
+                  <div class="flex items-center">
+                    <i class="fa fa-calendar w-5 mr-3"></i>
+                    <span id="calendar-views-text">日视图</span>
+                  </div>
+                  <i class="fa fa-chevron-down"></i>
+                </a>
+                <div class="absolute left-0 mt-1 w-full bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg hidden" id="calendar-views-dropdown">
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="day"
+                  >
+                    <i class="fa fa-calendar-day w-5 mr-3"></i>
+                    <span>日视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="week"
+                  >
+                    <i class="fa fa-calendar-week w-5 mr-3"></i>
+                    <span>周视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="month"
+                  >
+                    <i class="fa fa-calendar-month w-5 mr-3"></i>
+                    <span>月视图</span>
+                  </a>
+                  <a
+                    href="#"
+                    class="dropdown-item flex items-center px-4 py-3 rounded-lg hover:bg-white/10 text-white/90 transition-custom"
+                    data-view="year"
+                  >
+                    <i class="fa fa-calendar-alt w-5 mr-3"></i>
+                    <span>年视图</span>
+                  </a>
+                </div>
+=======
             <li class="relative">
               <div
                 class="nav-item flex items-center justify-between px-4 py-3 rounded-lg bg-white/10 text-white font-medium cursor-pointer"
@@ -439,6 +488,7 @@
                   <i class="fa fa-calendar-alt w-5 mr-3 text-primary"></i>
                   <span>年视图</span>
                 </a>
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
               </div>
             </li>
             <li>
@@ -641,6 +691,23 @@
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none bg-white/80"
                       placeholder="请输入显示名称"
                     >
+                  </div>
+                  
+                  <div>
+                    <div class="flex items-center justify-between">
+                      <label for="settings-completion-sound" class="block text-sm font-medium text-gray-700">任务完成提示音</label>
+                      <div class="relative inline-block w-12 h-6">
+                        <input 
+                          type="checkbox" 
+                          id="settings-completion-sound" 
+                          class="sr-only peer"
+                          checked
+                        >
+                        <div class="absolute inset-0 bg-gray-300 rounded-full peer peer-checked:bg-primary transition-colors"></div>
+                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></div>
+                      </div>
+                    </div>
+                    <p class="text-gray-500 text-xs mt-1">完成任务时播放提示音</p>
                   </div>
                 </div>
                 
@@ -1521,14 +1588,29 @@
 
           <div id="all-view" class="view-content hidden">
             <div class="bg-white/80 rounded-xl shadow-md p-5">
-              <h3
-                class="text-xl font-semibold text-gray-800 mb-4 flex items-center"
-              >
-                <i class="fa fa-tasks text-primary mr-2"></i> 所有任务
-                <span class="ml-2 text-sm font-normal text-gray-500"
-                  >(按优先级排序: 未完成 > 重要 > 时间最近)</span
+              <div class="flex justify-between items-center mb-4">
+                <h3
+                  class="text-xl font-semibold text-gray-800 flex items-center"
                 >
-              </h3>
+                  <i class="fa fa-tasks text-primary mr-2"></i> 所有任务
+                  <span class="ml-2 text-sm font-normal text-gray-500"
+                    >(按优先级排序: 未完成 > 重要 > 时间最近)</span
+                  >
+                </h3>
+                <!-- 已完成任务隐藏开关 -->
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-600">隐藏已完成任务</span>
+                  <div class="relative inline-block w-12 h-6 cursor-pointer" id="hide-completed-container">
+                    <input 
+                      type="checkbox" 
+                      id="hide-completed-tasks" 
+                      class="sr-only peer"
+                    >
+                    <div class="absolute inset-0 bg-gray-300 rounded-full peer peer-checked:bg-primary transition-colors"></div>
+                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></div>
+                  </div>
+                </div>
+              </div>
               <div
                 id="all-tasks-list"
                 class="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto scrollbar-hide"
@@ -1587,6 +1669,113 @@
               <option value="deadline">截止时间</option>
               <option value="timespan">时间段</option>
             </select>
+          </div>
+          
+          <!-- 周期性任务选项 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label
+                for="task-recurring"
+                class="block text-sm font-medium text-gray-700"
+                >周期性任务</label
+              >
+              <input
+                type="checkbox"
+                id="task-recurring"
+                name="task-recurring"
+                class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+            </div>
+          </div>
+          
+          <div id="recurrence-settings" class="hidden space-y-4">
+            <!-- 周期类型选择 -->
+            <div>
+              <label
+                for="recurrence-type"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >周期类型</label
+              >
+              <select
+                id="recurrence-type"
+                name="recurrence-type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              >
+                <option value="daily">每天</option>
+                <option value="weekly">每周</option>
+                <option value="monthly">每月</option>
+                <option value="yearly">每年</option>
+              </select>
+            </div>
+            
+            <!-- 周期频率 -->
+            <div>
+              <label
+                for="recurrence-frequency"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >周期频率</label
+              >
+              <div class="flex items-center space-x-2">
+                <input
+                  type="number"
+                  id="recurrence-frequency"
+                  name="recurrence-frequency"
+                  min="1"
+                  value="1"
+                  class="w-20 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+                <span class="text-gray-600">次</span>
+              </div>
+            </div>
+            
+            <!-- 开始与结束日期 -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="recurrence-start"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >开始日期</label
+                >
+                <input
+                  type="date"
+                  id="recurrence-start"
+                  name="recurrence-start"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  for="recurrence-end"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >结束日期</label
+                >
+                <input
+                  type="date"
+                  id="recurrence-end"
+                  name="recurrence-end"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+                  placeholder="无结束日期"
+                />
+              </div>
+            </div>
+            
+            <!-- 任务显示优先级 -->
+            <div>
+              <label
+                for="task-priority"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >任务显示优先级</label
+              >
+              <select
+                id="task-priority"
+                name="task-priority"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-custom outline-none"
+              >
+                <option value="low">低</option>
+                <option value="medium" selected>中</option>
+                <option value="high">高</option>
+              </select>
+            </div>
           </div>
 
           <div id="deadline-container">
@@ -2084,6 +2273,11 @@
     <audio id="background-music" loop>
       <source src="" type="audio/mpeg" />
     </audio>
+    
+    <!-- 任务完成提示音 -->
+    <audio id="completion-sound" preload="auto">
+      <source src="music/completion_sound.mp3" type="audio/mpeg" />
+    </audio>
 
     <div
       id="custom-platform-modal"
@@ -2286,7 +2480,7 @@
  
     <div
       id="welcome-tip-modal"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
     >
       <div
         class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
@@ -2454,6 +2648,83 @@
           loadTasks();
           showAppPage();
         }
+        
+        // 初始化已完成任务隐藏功能
+        initHideCompletedTasks();
+      }
+      
+      function initHideCompletedTasks() {
+        // 初始化隐藏开关状态
+        const hideCompletedToggle = document.getElementById('hide-completed-tasks');
+        if (hideCompletedToggle) {
+          hideCompletedToggle.checked = hideCompletedTasks;
+           
+          // 隐藏开关点击事件
+          hideCompletedToggle.addEventListener('change', (e) => {
+            hideCompletedTasks = e.target.checked;
+            localStorage.setItem('hideCompletedTasks', JSON.stringify(hideCompletedTasks));
+            
+            // 根据当前视图重新渲染
+            switch (currentView) {
+              case 'day':
+                renderDayView();
+                break;
+              case 'week':
+                renderWeekView();
+                break;
+              case 'month':
+                renderMonthView();
+                break;
+              case 'year':
+                renderYearView();
+                break;
+              case 'all':
+                renderAllView();
+                break;
+              case 'completed':
+                renderCompletedView();
+                break;
+              case 'important':
+                renderImportantView();
+                break;
+              default:
+                renderDayView();
+            }
+          });
+          
+          // 为容器添加点击事件监听器，确保点击div也能触发开关切换
+          const hideCompletedContainer = document.getElementById('hide-completed-container');
+          if (hideCompletedContainer) {
+            hideCompletedContainer.addEventListener('click', () => {
+              hideCompletedToggle.checked = !hideCompletedToggle.checked;
+              // 触发change事件，确保状态更新和视图重新渲染
+              hideCompletedToggle.dispatchEvent(new Event('change'));
+            });
+          }
+        }
+        
+        // 快捷键事件：按住Alt键临时显示所有任务
+        document.addEventListener('keydown', (e) => {
+          if (e.altKey && !showAllTasksTemporarily) {
+            showAllTasksTemporarily = true;
+            renderAllView();
+          }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+          if (!e.altKey && showAllTasksTemporarily) {
+            showAllTasksTemporarily = false;
+            renderAllView();
+          }
+        });
+      }
+      
+      // 修复：在switchView函数中，当切换到all视图时重新初始化隐藏开关
+      function updateHideCompletedToggle() {
+        const hideCompletedToggle = document.getElementById('hide-completed-tasks');
+        if (hideCompletedToggle) {
+          hideCompletedToggle.checked = hideCompletedTasks;
+        }
       }
 
       function loadPresetBackgrounds() {
@@ -2536,6 +2807,40 @@
             }
         });
 
+<<<<<<< HEAD
+        // 教程步骤按钮事件委托（简化版本）
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            
+            // 下一步按钮
+            if (target.closest('.step-next-btn')) {
+                e.preventDefault();
+                const currentStep = getCurrentStep();
+                if (currentStep < 4) {
+                    showStep(currentStep + 1);
+                    saveTutorialProgress(currentStep + 1);
+                }
+            }
+            
+            // 上一步按钮
+            if (target.closest('.step-prev-btn')) {
+                e.preventDefault();
+                const currentStep = getCurrentStep();
+                if (currentStep > 1) {
+                    showStep(currentStep - 1);
+                    saveTutorialProgress(currentStep - 1);
+                }
+            }
+            
+            // 完成教程按钮
+            if (target.closest('.step-complete-btn')) {
+                e.preventDefault();
+                completeTutorial();
+            }
+        });
+        // 导航项点击事件（包括下拉菜单外的项目）
+        navItems.forEach((item) => {
+=======
         // 视图切换器功能
         const viewSwitcher = document.getElementById("view-switcher");
         const viewDropdown = document.getElementById("view-dropdown");
@@ -2550,29 +2855,23 @@
 
         // 处理下拉菜单项点击
         dropdownItems.forEach((item) => {
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
           item.addEventListener("click", (e) => {
             e.preventDefault();
             const view = item.getAttribute("data-view");
             switchView(view);
-            
-            // 更新切换器文本
-            const viewTitles = {
-              day: "日视图",
-              week: "周视图",
-              month: "月视图",
-              year: "年视图"
-            };
-            viewSwitcherText.textContent = viewTitles[view] || "月视图";
-            
-            // 关闭下拉菜单
-            viewDropdown.classList.add("hidden");
           });
         });
 
         // 点击外部关闭下拉菜单
         document.addEventListener("click", (e) => {
-          if (!viewSwitcher.contains(e.target) && !viewDropdown.contains(e.target)) {
-            viewDropdown.classList.add("hidden");
+          // 添加了变量存在性检查，避免ReferenceError
+          const viewSwitcher = document.getElementById('calendar-views-toggle');
+          const viewDropdown = document.getElementById('calendar-views-dropdown');
+          if (viewSwitcher && viewDropdown) {
+            if (!viewSwitcher.contains(e.target) && !viewDropdown.contains(e.target)) {
+              viewDropdown.classList.add("hidden");
+            }
           }
         });
 
@@ -2631,6 +2930,20 @@
           addTaskModal.classList.remove("hidden");
 
           const now = new Date();
+<<<<<<< HEAD
+          now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+          
+          // 设置截止时间默认值为当天23:59
+          const deadlineDate = new Date(now);
+          deadlineDate.setHours(23, 59, 0, 0);
+          document.getElementById("task-deadline").value = deadlineDate
+            .toISOString()
+            .slice(0, 16);
+            
+          document.getElementById("task-start").value = now
+            .toISOString()
+            .slice(0, 16);
+=======
           
           // 设置开始时间为当前时间（本地时间格式）
           const startYear = now.getFullYear();
@@ -2639,8 +2952,8 @@
           const startHour = String(now.getHours()).padStart(2, '0');
           const startMinute = String(now.getMinutes()).padStart(2, '0');
           document.getElementById("task-start").value = `${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}`;
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
 
-          // 设置结束时间为1小时后（本地时间格式）
           const later = new Date(now);
           later.setHours(later.getHours() + 1);
           const endYear = later.getFullYear();
@@ -3224,16 +3537,33 @@
         loginPage.classList.remove("hidden");
       }
 
+      function updateSidebarUserInfo(user) {
+        const sidebarAvatar = document.getElementById('user-avatar');
+        const userDisplayName = document.getElementById('user-display-name');
+        
+        if (sidebarAvatar) {
+          sidebarAvatar.src = user.avatar || 'picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg';
+        }
+        
+        if (userDisplayName) {
+          // 确保显示完整的用户名，不拼接额外的"账号"后缀
+          const displayName = user.displayName || user.username || '用户名';
+          userDisplayName.textContent = displayName;
+        }
+      }
+
       function showAppPage() {
         loginPage.classList.add("hidden");
         registerPage.classList.add("hidden");
         appPage.classList.remove("hidden");
-        viewTitleEl.textContent = "日视图";
         
         // 更新侧边栏用户信息和头像
         if (currentUser) {
           updateSidebarUserInfo(currentUser);
         }
+        
+        // 登录后默认跳转到总任务界面
+        switchView('all');
       }
 
       function switchView(view) {
@@ -3275,6 +3605,11 @@
             activeNavItem.classList.remove("hover:bg-white/10", "text-white/90");
             activeNavItem.classList.add("bg-white/10", "text-white", "font-medium");
           }
+        }
+        
+        // 修复：当切换到all视图时，更新隐藏已完成任务开关状态
+        if (view === 'all') {
+          updateHideCompletedToggle();
         }
 
         const viewTitles = {
@@ -3499,6 +3834,14 @@
         const type = document.getElementById("task-type").value;
         const isImportant = document.getElementById("task-important").checked;
         const notes = document.getElementById("task-notes").value;
+        
+        // 获取周期性任务设置
+        const isRecurring = document.getElementById("task-recurring").checked;
+        const recurrenceType = document.getElementById("recurrence-type").value;
+        const recurrenceFrequency = parseInt(document.getElementById("recurrence-frequency").value) || 1;
+        const recurrenceStart = document.getElementById("recurrence-start").value;
+        const recurrenceEnd = document.getElementById("recurrence-end").value;
+        const priority = document.getElementById("task-priority").value;
 
         let deadline, start, end;
 
@@ -3520,6 +3863,15 @@
           notes,
           isCompleted: false,
           createdAt: new Date().toISOString(),
+          priority: priority || "medium",
+          // 周期性任务设置
+          isRecurring,
+          recurrence: isRecurring ? {
+            type: recurrenceType,
+            frequency: recurrenceFrequency,
+            start: recurrenceStart,
+            end: recurrenceEnd || null
+          } : null
         };
 
         tasks.unshift(newTask);
@@ -3553,6 +3905,7 @@
       function toggleTaskCompletion(taskId) {
         const task = tasks.find((t) => t.id === taskId);
         if (task) {
+          const wasCompleted = task.isCompleted;
           task.isCompleted = !task.isCompleted;
           saveTasks();
 
@@ -3563,6 +3916,24 @@
           renderImportantView();
           renderCompletedView();
           renderAllView();
+          
+          // 如果任务从完成变为未完成，不播放提示音
+          if (!wasCompleted && task.isCompleted) {
+            // 检查用户是否启用了完成提示音
+            const userSettings = JSON.parse(localStorage.getItem(`settings_${currentUser.username}`) || '{}');
+            const isSoundEnabled = userSettings.completionSoundEnabled !== false; // 默认启用
+            
+            if (isSoundEnabled) {
+              // 播放任务完成提示音
+              const completionSound = document.getElementById('completion-sound');
+              if (completionSound) {
+                completionSound.currentTime = 0;
+                completionSound.play().catch(error => {
+                  console.error('Error playing completion sound:', error);
+                });
+              }
+            }
+          }
         }
       }
 
@@ -3924,12 +4295,21 @@
         const today = currentDate.toISOString().split("T")[0];
 
         const todayTasks = tasks.filter((task) => {
-          if (task.isCompleted) return false;
+          if (hideCompletedTasks && task.isCompleted) return false;
 
           const todayDate = new Date(currentDate);
           todayDate.setHours(0, 0, 0, 0);
           
           if (task.type === "deadline" && task.deadline) {
+<<<<<<< HEAD
+            // 对于截止时间任务，只要截止日期大于等于当前日期，就应该显示
+            const taskDeadline = new Date(task.deadline);
+            const todayEnd = new Date(today + "T23:59:59");
+            return taskDeadline <= todayEnd;
+          } else if (task.type === "timespan" && task.start) {
+            // 对于时间段任务，只显示开始时间在当天的任务
+            return task.start.split("T")[0] === today;
+=======
             // 截止时间任务：显示所有未过期且截止时间在今天或之前的任务
             const taskDeadline = new Date(task.deadline);
             return taskDeadline >= todayDate;
@@ -3943,6 +4323,7 @@
             return (taskStart >= todayDate && taskStart <= todayEnd) || 
                    (taskEnd >= todayDate && taskEnd <= todayEnd) ||
                    (taskStart <= todayDate && taskEnd >= todayEnd);
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
           }
           return false;
         });
@@ -4003,7 +4384,7 @@
         });
 
         const weekTasks = tasks.filter((task) => {
-          if (task.isCompleted) return false;
+          if (hideCompletedTasks && task.isCompleted) return false;
 
           let taskDate;
           if (task.type === "deadline" && task.deadline) {
@@ -4080,7 +4461,7 @@
         }
 
         const monthTasks = tasks.filter((task) => {
-          if (task.isCompleted) return false;
+          if (hideCompletedTasks && task.isCompleted) return false;
 
           let taskDate;
           if (task.type === "deadline" && task.deadline) {
@@ -4364,11 +4745,22 @@
         });
       }
 
+      // 已完成任务隐藏状态管理
+      let hideCompletedTasks = JSON.parse(localStorage.getItem('hideCompletedTasks') || 'false');
+      
+      // 渲染时是否显示所有任务（用于快捷键临时显示）
+      let showAllTasksTemporarily = false;
+      
       function renderAllView() {
         const container = document.getElementById("all-tasks-list");
         container.innerHTML = "";
 
-        const allTasks = [...tasks];
+        let allTasks = [...tasks];
+        
+        // 根据隐藏状态过滤任务
+        if (hideCompletedTasks && !showAllTasksTemporarily) {
+          allTasks = allTasks.filter(task => !task.isCompleted);
+        }
 
         allTasks.sort((a, b) => {
           if (!a.isCompleted && b.isCompleted) return -1;
@@ -4376,6 +4768,12 @@
 
           if (a.isImportant && !b.isImportant) return -1;
           if (!a.isImportant && b.isImportant) return 1;
+          
+          // 添加优先级排序
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          if (a.priority !== b.priority) {
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+          }
 
           const timeA = a.type === "deadline" ? a.deadline : a.start;
           const timeB = b.type === "deadline" ? b.deadline : b.start;
@@ -4390,6 +4788,14 @@
 
         allTasks.forEach((task) => {
           const taskEl = createTaskElement(task);
+          
+          // 添加完成状态的动画效果
+          if (task.isCompleted) {
+            taskEl.classList.add('opacity-60', 'transition-opacity', 'duration-300');
+          } else {
+            taskEl.classList.add('transition-opacity', 'duration-300');
+          }
+          
           container.appendChild(taskEl);
         });
       }
@@ -4451,7 +4857,8 @@
           startPomodoroBtn.innerHTML = '<i class="fa fa-play mr-2"></i>开始';
           document.getElementById("pomodoro-circle").classList.remove("pulse");
 
-          const audio = new Audio("music/notification.mp3");
+          // 使用内联base64音频替代相对路径，避免文件找不到的错误
+          const audio = new Audio("data:audio/wav;base64,UklGRiIAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=");
           audio.play().catch((e) => {
             console.log("播放提示音失败:", e);
           });
@@ -4584,30 +4991,40 @@
       function handleMusicImport(e) {
         const file = e.target.files[0];
         if (file) {
-          const audioUrl = URL.createObjectURL(file);
-          playMusic(audioUrl);
+          // 使用FileReader将文件转换为base64编码，避免blob URL过期问题
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const audioDataUrl = e.target.result;
+            playMusic(audioDataUrl);
 
-          importedMusicName.textContent = file.name;
-          importedMusicName.classList.remove("hidden");
+            importedMusicName.textContent = file.name;
+            importedMusicName.classList.remove("hidden");
 
-          currentMusic = audioUrl;
-          saveUserSetting("currentMusic", audioUrl);
-          saveUserSetting("importedMusicName", file.name);
+            currentMusic = audioDataUrl;
+            saveUserSetting("currentMusic", audioDataUrl);
+            saveUserSetting("importedMusicName", file.name);
+          };
+          reader.readAsDataURL(file);
         }
       }
 
       function handleBgImageImport(e) {
         const file = e.target.files[0];
         if (file) {
-          const imgUrl = URL.createObjectURL(file);
-          applyBackgroundImage(imgUrl);
+          // 使用FileReader将文件转换为base64编码，避免blob URL过期问题
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const imgDataUrl = e.target.result;
+            applyBackgroundImage(imgDataUrl);
 
-          saveUserSetting("bgImage", imgUrl);
+            saveUserSetting("bgImage", imgDataUrl);
 
-          document.querySelectorAll("#preset-bg-images > div").forEach((el) => {
-            el.classList.remove("border-primary");
-            el.classList.add("border-transparent");
-          });
+            document.querySelectorAll("#preset-bg-images > div").forEach((el) => {
+              el.classList.remove("border-primary");
+              el.classList.add("border-transparent");
+            });
+          };
+          reader.readAsDataURL(file);
         }
       }
 
@@ -5467,6 +5884,10 @@
       const displayNameInput = document.getElementById('settings-display-name');
       const usernameInput = document.getElementById('settings-username');
       const avatarPreview = document.getElementById('settings-avatar-preview');
+      const completionSoundInput = document.getElementById('settings-completion-sound');
+      
+      // 加载用户设置
+      const settings = JSON.parse(localStorage.getItem(`settings_${user.username}`) || '{}');
       
       if (usernameInput) {
         usernameInput.value = user.username || '用户名账号';
@@ -5479,6 +5900,11 @@
       if (avatarPreview) {
         avatarPreview.src = user.avatar || 'picture/d55b124c0df10dd34a1fb0d5d284d9fc.jpg';
       }
+      
+      if (completionSoundInput) {
+        // 默认启用提示音
+        completionSoundInput.checked = settings.completionSoundEnabled !== false;
+      }
     }
     
   
@@ -5489,13 +5915,22 @@
       const currentPasswordInput = document.getElementById('current-password');
       const newPasswordInput = document.getElementById('new-password');
       const confirmPasswordInput = document.getElementById('confirm-password');
+      const completionSoundInput = document.getElementById('settings-completion-sound');
       
      
       let user = JSON.parse(localStorage.getItem('currentUser') || '{"username":"用户名","displayName":"用户名账号"}');
       
- 
+      // 加载用户设置
+      let settings = JSON.parse(localStorage.getItem(`settings_${user.username}`) || '{}');
+      
+     
       if (displayNameInput && displayNameInput.value.trim()) {
         user.displayName = displayNameInput.value.trim();
+      }
+      
+      // 保存提示音设置
+      if (completionSoundInput) {
+        settings.completionSoundEnabled = completionSoundInput.checked;
       }
       
      
@@ -5517,6 +5952,7 @@
       
      
       localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem(`settings_${user.username}`, JSON.stringify(settings));
       
 
       updateSidebarUserInfo(user);
@@ -5538,8 +5974,8 @@
       }
       
       if (userDisplayName) {
-    
-        const displayName = user.displayName || (user.username ? user.username + '账号' : '用户名账号');
+        // 确保显示完整的用户名，不拼接额外的"账号"后缀
+        const displayName = user.displayName || user.username || '用户名';
         userDisplayName.textContent = displayName;
       }
     }
