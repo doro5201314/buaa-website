@@ -396,6 +396,7 @@
 
         <nav class="flex-1 overflow-y-auto scrollbar-hide p-4">
           <ul class="space-y-1">
+<<<<<<< HEAD
             <li>
               <div class="relative">
                 <a
@@ -443,6 +444,51 @@
                     <span>年视图</span>
                   </a>
                 </div>
+=======
+            <li class="relative">
+              <div
+                class="nav-item flex items-center justify-between px-4 py-3 rounded-lg bg-white/10 text-white font-medium cursor-pointer"
+                id="view-switcher"
+              >
+                <div class="flex items-center">
+                  <i class="fa fa-calendar w-5 mr-3"></i>
+                  <span id="view-switcher-text">月视图</span>
+                </div>
+                <i class="fa fa-chevron-down text-white/80 text-xs"></i>
+              </div>
+              <div id="view-dropdown" class="hidden absolute left-0 mt-1 w-full bg-white/90 rounded-lg shadow-lg z-10 backdrop-blur-sm">
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="day"
+                >
+                  <i class="fa fa-calendar-day w-5 mr-3 text-primary"></i>
+                  <span>日视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="week"
+                >
+                  <i class="fa fa-calendar-week w-5 mr-3 text-primary"></i>
+                  <span>周视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="month"
+                >
+                  <span class="pl-8">月视图</span>
+                </a>
+                <a
+                  href="#"
+                  class="dropdown-item flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 transition-custom"
+                  data-view="year"
+                >
+                  <i class="fa fa-calendar-alt w-5 mr-3 text-primary"></i>
+                  <span>年视图</span>
+                </a>
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
               </div>
             </li>
             <li>
@@ -2761,6 +2807,7 @@
             }
         });
 
+<<<<<<< HEAD
         // 教程步骤按钮事件委托（简化版本）
         document.addEventListener('click', (e) => {
             const target = e.target;
@@ -2793,6 +2840,22 @@
         });
         // 导航项点击事件（包括下拉菜单外的项目）
         navItems.forEach((item) => {
+=======
+        // 视图切换器功能
+        const viewSwitcher = document.getElementById("view-switcher");
+        const viewDropdown = document.getElementById("view-dropdown");
+        const viewSwitcherText = document.getElementById("view-switcher-text");
+        const dropdownItems = document.querySelectorAll(".dropdown-item");
+
+        // 切换下拉菜单显示/隐藏
+        viewSwitcher.addEventListener("click", (e) => {
+          e.preventDefault();
+          viewDropdown.classList.toggle("hidden");
+        });
+
+        // 处理下拉菜单项点击
+        dropdownItems.forEach((item) => {
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
           item.addEventListener("click", (e) => {
             e.preventDefault();
             const view = item.getAttribute("data-view");
@@ -2867,6 +2930,7 @@
           addTaskModal.classList.remove("hidden");
 
           const now = new Date();
+<<<<<<< HEAD
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           
           // 设置截止时间默认值为当天23:59
@@ -2879,6 +2943,16 @@
           document.getElementById("task-start").value = now
             .toISOString()
             .slice(0, 16);
+=======
+          
+          // 设置开始时间为当前时间（本地时间格式）
+          const startYear = now.getFullYear();
+          const startMonth = String(now.getMonth() + 1).padStart(2, '0');
+          const startDay = String(now.getDate()).padStart(2, '0');
+          const startHour = String(now.getHours()).padStart(2, '0');
+          const startMinute = String(now.getMinutes()).padStart(2, '0');
+          document.getElementById("task-start").value = `${startYear}-${startMonth}-${startDay}T${startHour}:${startMinute}`;
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
 
           const later = new Date(now);
           later.setHours(later.getHours() + 1);
@@ -4227,6 +4301,7 @@
           todayDate.setHours(0, 0, 0, 0);
           
           if (task.type === "deadline" && task.deadline) {
+<<<<<<< HEAD
             // 对于截止时间任务，只要截止日期大于等于当前日期，就应该显示
             const taskDeadline = new Date(task.deadline);
             const todayEnd = new Date(today + "T23:59:59");
@@ -4234,6 +4309,21 @@
           } else if (task.type === "timespan" && task.start) {
             // 对于时间段任务，只显示开始时间在当天的任务
             return task.start.split("T")[0] === today;
+=======
+            // 截止时间任务：显示所有未过期且截止时间在今天或之前的任务
+            const taskDeadline = new Date(task.deadline);
+            return taskDeadline >= todayDate;
+          } else if (task.type === "timespan" && task.start && task.end) {
+            // 时间段任务：显示今天开始或今天正在进行的任务
+            const taskStart = new Date(task.start);
+            const taskEnd = new Date(task.end);
+            const todayEnd = new Date(currentDate);
+            todayEnd.setHours(23, 59, 59, 999);
+            
+            return (taskStart >= todayDate && taskStart <= todayEnd) || 
+                   (taskEnd >= todayDate && taskEnd <= todayEnd) ||
+                   (taskStart <= todayDate && taskEnd >= todayEnd);
+>>>>>>> 893a50e3c21097a527d9a95e5fc991e13c444998
           }
           return false;
         });
